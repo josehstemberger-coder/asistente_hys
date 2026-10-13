@@ -145,16 +145,14 @@ MODOS = {
         "boton": "Conducta insegura",
         "contexto": ABORDAJE_INSEGURO,
         "bienvenida": (
-            "Modo Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, y el nombre del "
-            "trabajador si querés) o mandame una foto, y te armo el guion para abordarlo."
+            "Modo Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y te armo el guion para abordarlo."
         ),
     },
     "segura": {
         "boton": "Conducta segura",
         "contexto": ABORDAJE_SEGURO,
         "bienvenida": (
-            "Modo Conducta segura. Contame qué viste que estaba haciendo bien (tarea, qué hizo, y el nombre "
-            "si querés) o mandame una foto, y te armo el guion para validarlo."
+            "Modo Conducta segura. Contame qué viste que estaba haciendo bien (tarea, qué hizo), y te armo el guion para validarlo."
         ),
     },
 }
@@ -306,7 +304,7 @@ INSTRUCTIVO = (
     "Hola, soy el Asistente HYS. Te ayudo con las situaciones difíciles del día a día de un técnico en "
     "Seguridad e Higiene. Tiene cuatro opciones:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
-    "pares una tarea, un operario que se resiste, una discusión) y te digo cómo encararla, con frases para "
+    "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
     "usar. Se escribe, no hace falta archivo.\n\n"
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
     "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés, escribí una indicación en el "
@@ -317,9 +315,9 @@ INSTRUCTIVO = (
     "Cómo sacarle el jugo: sé concreto. Cuanto más detalle me des (tarea, lugar, qué pasó, cómo reaccionó la "
     "persona), mejor sale la respuesta. No mandes datos personales sensibles ni documentos confidenciales de "
     "tu empresa.\n\n"
-    "Importante: si lo que ves es un riesgo grave o inminente, primero frená la tarea y asegurá la zona; "
+    "Importante: si lo que ves es un riesgo grave o inminente, primero frená la tarea (stop work) y comunicá al supervisor; "
     "el guion o la charla vienen después. Soy una ayuda: no reemplazo tu criterio profesional, la evaluación "
-    "de riesgos de tu lugar ni la normativa vigente.\n\n"
+    "de riesgos de tu lugar ni la normativa vigente ni los procedimientos de tu empresa.\n\n"
     "Comandos: /menu para cambiar de opción, /ayuda para ver este instructivo de nuevo."
 )
 
