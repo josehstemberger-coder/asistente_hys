@@ -145,14 +145,16 @@ MODOS = {
         "boton": "Conducta insegura",
         "contexto": ABORDAJE_INSEGURO,
         "bienvenida": (
-            "Modo Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y te armo el guion para abordarlo."
+            "Modo Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
+            "te armo el guion para abordarlo."
         ),
     },
     "segura": {
         "boton": "Conducta segura",
         "contexto": ABORDAJE_SEGURO,
         "bienvenida": (
-            "Modo Conducta segura. Contame qué viste que estaba haciendo bien (tarea, qué hizo), y te armo el guion para validarlo."
+            "Modo Conducta segura. Contame qué viste que estaba haciendo bien (tarea, qué hizo), y "
+            "te armo el guion para validarlo."
         ),
     },
 }
