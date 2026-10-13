@@ -311,7 +311,7 @@ INSTRUCTIVO = (
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
     "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés, escribí una indicación en el "
     "pie del archivo (por ejemplo: 'para personal de soldadura').\n\n"
-    "3. Conducta insegura. Modo Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
+    "3. Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
     "te armo el guion para abordarlo.\n\n"
     "4. Conducta segura. Lo mismo, pero para reconocer y reforzar algo que alguien hizo bien.\n\n"
     "Cómo sacarle el jugo: sé concreto. Cuanto más detalle me des (tarea, lugar, qué pasó, cómo reaccionó la "
