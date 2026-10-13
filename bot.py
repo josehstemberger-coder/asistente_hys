@@ -13,6 +13,7 @@ from telegram.ext import Application, MessageHandler, CommandHandler, ContextTyp
 load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+ALLOWED_IDS = [int(x) for x in os.getenv("ALLOWED_IDS", "").split(",") if x.strip().isdigit()]
 
 # Modelo principal y de respaldo. Verificá el nombre del respaldo en tu cuenta de Gemini.
 MODELOS = [m.strip() for m in os.getenv("MODELOS", "").split(",") if m.strip()] or [
@@ -239,14 +240,18 @@ async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bio.name = f"charla_5_minutos.{ext}"
     await msg.reply_document(document=bio, caption="Acá tenés la charla para descargar.")
 
-
+async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"Tu ID es {update.effective_user.id}")
+    
 def main():
     if not TELEGRAM_BOT_TOKEN or not GEMINI_API_KEY:
         raise SystemExit("Faltan TELEGRAM_BOT_TOKEN o GEMINI_API_KEY en el .env")
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.Document.ALL | filters.PHOTO, manejar_archivo))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_texto))
+    permitido = filters.User(user_id=ALLOWED_IDS) if ALLOWED_IDS else filters.ALL
+    app.add_handler(CommandHandler("id", mi_id))
+    app.add_handler(CommandHandler("start", start, filters=permitido))
+    app.add_handler(MessageHandler(permitido & (filters.Document.ALL | filters.PHOTO), manejar_archivo))
+    app.add_handler(MessageHandler(permitido & filters.TEXT & ~filters.COMMAND, manejar_texto))
     log.info("Bot en marcha")
     app.run_polling(drop_pending_updates=True)
 
