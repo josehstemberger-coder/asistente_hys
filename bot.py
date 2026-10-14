@@ -303,8 +303,9 @@ async def mostrar_menu(msg):
 
 
 INSTRUCTIVO = (
-    "Hola, soy el Asistente HYS. Te ayudo con las situaciones difíciles del día a día de un técnico en "
-    "Seguridad e Higiene. Tiene cuatro opciones:\n\n"
+    "Hola, soy el Asistente de Seguridad e Higiene. Ayudo a los Técnicos a gestionar y encontrar soluciones constructivas a las "
+    "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia." 
+    "Tengo cuatro herramientas:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
     "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
     "usar. Se escribe, no hace falta archivo.\n\n"
