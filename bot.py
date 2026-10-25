@@ -150,6 +150,34 @@ PROMPT_CHARLA = (
     "completas y sin cortes) y que ningún principio del material haya quedado afuera."
 )
 
+def instruccion_tecnico(indicacion):
+    """Bloque que se agrega al prompt de la charla cuando el técnico escribe algo en el pie del archivo."""
+    return (
+        "\n\nINDICACIÓN DEL TÉCNICO (la escribió quien da la charla y conoce el material): «"
+        + indicacion.strip() + "»\n"
+        "Cómo usarla:\n"
+        "- Antes de escribir, ubicá en el material los puntos o temas pedidos y usá únicamente ese "
+        "contenido. Si la charla incluye algo que no está en lo que el técnico eligió, está mal.\n"
+        "- Si la indicación nombra puntos, secciones, números o temas del material, desarrollá la charla "
+        "únicamente con esos puntos. No incluyas ni menciones otros puntos del material. Solo podés sumar una "
+        "frase de contexto del material si hace falta para entender un punto elegido. Esta regla prevalece "
+        "sobre las demás: lo de cubrir todos los principios y la revisión final valen solo para los puntos "
+        "elegidos.\n"
+        "- Si el material numera distinto de lo que escribió el técnico, guiate por el título o tema del "
+        "punto además del número; ante la duda, elegí la lectura más razonable.\n"
+        "- Con pocos puntos, profundizalos con ejemplos del trabajo diario, sin agregar contenido técnico "
+        "que no esté en el material. El largo puede quedar entre 450 y 700 palabras; no rellenes con temas "
+        "ajenos a la selección.\n"
+        "- Si la indicación habla de otra cosa (a quién va dirigida la charla, el tono o el sector), aplicala "
+        "sin limitar el contenido.\n"
+        "- Si no encontrás NINGUNO de los puntos o temas pedidos, no inventes: respondé únicamente con una "
+        "línea que empiece con 'NO_ENCONTRADO:' y diga qué no encontraste.\n"
+        "- Si encontrás algunos pero no todos, armá la charla con los que sí encontraste y empezá tu "
+        "respuesta con una primera línea que empiece con 'AVISO:' diciendo cuáles no encontraste; la charla "
+        "va en las líneas siguientes.\n"
+    )
+
+
 MODOS = {
     "mentalidad": {
         "boton": "Mentalidad y habilidades",
@@ -165,7 +193,11 @@ MODOS = {
         "contexto": ESTILO_CHARLAS,
         "bienvenida": (
             "Modo Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla "
-            "de 5 minutos, en el chat y en un .docx. Podés agregar una indicación en el pie del archivo."
+            "de 5 minutos, en el chat y en un .docx.\n\n"
+            "Si querés la charla con todo el archivo, mandalo sin comentarios. Si querés que la charla "
+            "desarrolle solo algunos puntos o temas (un procedimiento largo, por ejemplo), escribilos en el "
+            "pie del archivo: 'solo los puntos 4, 5 y 6' o 'solo bloqueo y etiquetado'. Para eso tenés que "
+            "conocer el contenido del archivo."
         ),
     },
     "insegura": {
@@ -331,14 +363,17 @@ async def mostrar_menu(msg):
 
 INSTRUCTIVO = (
     "Hola, soy el Asistente de Seguridad e Higiene. Ayudo a los Técnicos a gestionar y encontrar soluciones constructivas a las "
-    "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia." 
+    "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia. "
     "Tengo cuatro herramientas:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
     "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
     "usar. Se escribe, no hace falta archivo.\n\n"
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
-    "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés, escribí una indicación en el "
-    "pie del archivo (por ejemplo: 'para personal de soldadura').\n\n"
+    "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el "
+    "archivo, mandalo sin comentarios. Si querés que desarrolle solo algunos puntos o temas (un "
+    "procedimiento largo, por ejemplo), escribilos en el pie del archivo: 'solo los puntos 4, 5 y 6', "
+    "'solo bloqueo y etiquetado'. Para eso tenés que conocer el contenido del archivo. En el pie también "
+    "podés indicar a quién va dirigida ('para personal de soldadura').\n\n"
     "3. Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
     "te armo el guion para abordarlo.\n\n"
     "4. Conducta segura. Lo mismo, pero para reconocer y reforzar algo que alguien hizo bien.\n\n"
@@ -415,8 +450,8 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await responder_largo(msg, respuesta)
 
 
-async def generar_charla(msg, prompt, partes):
-    await msg.reply_text("Recibido, estoy armando la charla. Dame unos segundos.")
+async def generar_charla(msg, prompt, partes, recibido="Recibido, estoy armando la charla. Dame unos segundos."):
+    await msg.reply_text(recibido)
     await msg.chat.send_action("typing")
     try:
         charla = await asyncio.to_thread(llamar_ia, "charla", prompt, partes, TIMEOUT_ARCHIVO)
@@ -424,11 +459,51 @@ async def generar_charla(msg, prompt, partes):
         log.error("Falló la IA: %s", e)
         await msg.reply_text("Ahora no pude generar la charla. Probá de nuevo en un ratito.")
         return
+
+    # Si el técnico eligió puntos, la IA puede avisar que no los encontró (total o parcialmente)
+    primera, _, resto = charla.strip().partition("\n")
+    marca = primera.strip().upper().lstrip("*# ")
+    if marca.startswith("NO_ENCONTRADO"):
+        detalle = primera.split(":", 1)[-1].strip() or "no pude ubicar esos puntos en el archivo."
+        await msg.reply_text(
+            "No pude armar la charla: " + detalle + "\nRevisá cómo escribiste los puntos (número y nombre) "
+            "y mandame el archivo de nuevo con la indicación corregida."
+        )
+        return
+    if marca.startswith("AVISO"):
+        await msg.reply_text("Ojo: " + (primera.split(":", 1)[-1].strip() or "no encontré alguno de los puntos."))
+        charla = resto.strip()
     await responder_largo(msg, charla)
     contenido, ext = await asyncio.to_thread(texto_a_docx, charla)
     bio = io.BytesIO(contenido)
     bio.name = f"charla_5_minutos.{ext}"
     await msg.reply_document(document=bio, caption="Acá tenés la charla para descargar.")
+
+
+async def armar_charla_de_archivo(msg, texto, partes, indicacion=""):
+    """Arma la charla con el material del archivo. Con indicación, desarrolla solo lo que el técnico eligió."""
+    prompt = PROMPT_CHARLA
+    recibido = "Recibido, estoy armando la charla. Dame unos segundos."
+    cierre = ""
+    if indicacion:
+        log.info("Charla con indicación del técnico: %s", indicacion[:200])
+        # La selección va al principio (aviso) y al final (detalle), después del material, para que no se pierda
+        prompt = (
+            "ATENCIÓN: el técnico eligió qué puntos o temas del material desarrollar. Su indicación está "
+            "al final de este mensaje y prevalece sobre todas las reglas siguientes: la charla NO debe "
+            "cubrir todo el material, solo lo que el técnico eligió.\n\n"
+        ) + prompt
+        cierre = instruccion_tecnico(indicacion)
+        recibido = ("Recibido. Tomo tu indicación: «" + indicacion[:300]
+                    + "». Armo la charla, dame unos segundos.")
+    if texto:
+        prompt += "\n\nMATERIAL:\n" + texto[:60000]
+    if cierre:
+        if partes:
+            partes = list(partes) + [{"text": cierre}]  # queda después del PDF o la imagen
+        else:
+            prompt += cierre
+    await generar_charla(msg, prompt, partes, recibido)
 
 
 async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -468,12 +543,8 @@ async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if modo == "charla":
-        prompt = PROMPT_CHARLA
-        if msg.caption:
-            prompt += "\n\nIndicación extra de quien lo envía: " + msg.caption
-        if texto:
-            prompt += "\n\nMATERIAL:\n" + texto[:60000]
-        await generar_charla(msg, prompt, partes)
+        # Sin pie: charla con todo el archivo. Con pie: desarrolla solo los puntos o temas que escribió el técnico
+        await armar_charla_de_archivo(msg, texto, partes, (msg.caption or "").strip())
         return
 
     # insegura / segura: el archivo o la foto describe lo observado
