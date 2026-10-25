@@ -43,8 +43,7 @@ def cargar(nombre):
 
 MENTALIDAD = cargar("mentalidad.txt")
 ESTILO_CHARLAS = cargar("estilo_charlas.txt")
-ABORDAJE_INSEGURO = cargar("abordaje_inseguro.txt")
-ABORDAJE_SEGURO = cargar("abordaje_seguro.txt")
+GUIA_ABORDAJE = cargar("guia_abordaje.txt")
 
 # ----------------------------------------------------------------------------------------------
 # Reglas generales (valen para todos los modos)
@@ -88,28 +87,65 @@ PROMPT_MENTALIDAD = (
 )
 
 PROMPT_INSEGURO = (
-    "El técnico observó un comportamiento inseguro y necesita un guion para abordarlo. Armá el guion siguiendo "
-    "el método de abordaje del material, adaptado al caso concreto: los comentarios positivos tienen que "
-    "salir de lo que se sabe de la situación (si no hay datos, proponé reconocimientos razonables y marcalos "
-    "como ejemplo para que él los reemplace por lo que realmente vea), las preguntas de QUÉ y CÓMO tienen que "
-    "hablar de las lesiones y consecuencias reales de ese desvío, y las preguntas para guiar al SÍ tienen que "
-    "ser específicas del caso. Cada paso va en un renglón que empiece con 'Paso N:', con lo que hay que hacer "
-    "y, entre comillas, las palabras exactas para decir. Indicá entre paréntesis qué respuesta esperás "
-    "(por ejemplo (que te responda SÍ) o (esperá que piense)). Cerrá con el compromiso del trabajador y la "
-    "tarjeta de observación. Al final, una línea con un tip sobre qué cuidar en este caso puntual (tono, "
-    "momento o lugar). Si la situación implica riesgo grave o inminente, empezá indicando que primero se frena "
-    "la tarea. Descripción de lo observado:\n"
+    "El técnico observó un comportamiento inseguro y necesita un guion para abordarlo. Armá el guion con la "
+    "ETAPA 4A de la guía de abordaje positivo del material (interacción ante un comportamiento inseguro), "
+    "adaptado al caso concreto, con esta estructura:\n"
+    "1) Un bloque que empiece con la línea 'Antes de acercarte', de 3 a 5 oraciones: la intención "
+    "(entender cómo lo ve la persona, no retarla; si está apurado o molesto, que espere un momento), los hechos "
+    "observados sin interpretar y qué mirar del entorno que pudo influir. Si la situación implica riesgo grave "
+    "o inminente, decí en este bloque que primero se detiene la tarea y se asegura la zona, y que la "
+    "conversación viene después.\n"
+    "2) Siete pasos, cada uno en un renglón que empiece con 'Paso N:', con lo que hay que hacer y, entre "
+    "comillas, las palabras exactas para decir: Paso 1 Conectá (acercarse, llamarlo por su nombre y pedirle que "
+    "se detenga un momento); Paso 2 Reconocé con sinceridad algo específico y real que esté haciendo bien (uno, "
+    "no una cuota); Paso 3 Describí el hecho sin juicio, uniendo lo que viste y escuchaste con 'y', nunca con "
+    "'pero'; Paso 4 Preguntá abierto y escuchá sin interrumpir (por ejemplo qué riesgos ve, qué podría pasar, "
+    "qué le hace difícil hacerlo seguro hoy, qué del entorno o de la tarea se lo complica); Paso 5 Si no "
+    "responde, ofrecé seguridad y bajá la presión; Paso 6 Que proponga él cómo hacer el trabajo con más "
+    "seguridad, y si no surge una idea, ofrecé una opción como sugerencia y no como orden; Paso 7 Acordá y "
+    "agradecé: que diga con sus palabras qué hará distinto o qué necesita de vos, y agradecele su atención, "
+    "predisposición y compromiso con la seguridad.\n"
+    "3) Un bloque que empiece con la línea 'Después de la conversación': completar la tarjeta de observación "
+    "marcándola como comportamiento inseguro y cargarla al sistema o colocarla en el buzón; registrar también las "
+    "condiciones del entorno; reportar como oportunidad de mejora lo que el trabajador haya mencionado o lo que "
+    "del entorno haya influido; llevar lo aprendido a la próxima planificación.\n"
+    "4) Una última línea que empiece con 'Tip:' sobre qué cuidar en este caso puntual (tono, momento o lugar).\n"
+    "Reglas del guion: no uses preguntas que se responden solo con sí o no ni '¿por qué?', porque generan "
+    "defensa; las preguntas tienen que hablar de los riesgos y consecuencias reales de este desvío en particular. "
+    "Indicá entre paréntesis qué hacer o esperar después de cada pregunta (por ejemplo (esperá la respuesta) o "
+    "(dejalo pensar un momento)). Si faltan datos, proponé ejemplos razonables y marcalos entre corchetes para que "
+    "el técnico los reemplace por lo que realmente vio. Cuando hables de compartir o difundir algo, decí 'charla "
+    "de seguridad'. Descripción de lo observado:\n"
 )
 
 PROMPT_SEGURO = (
     "El técnico observó un comportamiento seguro y necesita un guion para validarlo y reforzarlo. Armá el guion "
-    "siguiendo el método del material, adaptado al caso concreto: el reconocimiento tiene que ser específico "
-    "sobre lo que la persona hizo bien (si faltan datos, proponé reconocimientos razonables y marcalos como "
-    "ejemplo para que él los reemplace por lo que realmente vio), y las preguntas tienen que ser del caso. "
-    "Cada paso va en un renglón que empiece con 'Paso N:', con lo que hay que hacer y, entre comillas, las "
-    "palabras exactas para decir. Que suene sincero y sin exagerar: nada de halagos de manual. Cerrá con "
-    "invitar a la persona a compartirlo con el equipo y con la tarjeta de observación. Al final, una línea "
-    "con un tip sobre qué cuidar en este caso puntual. Descripción de lo observado:\n"
+    "con la ETAPA 4B de la guía de abordaje positivo del material (interacción ante un comportamiento seguro), "
+    "adaptado al caso concreto, con esta estructura:\n"
+    "1) Un bloque que empiece con la línea 'Antes de acercarte', de 3 a 5 oraciones: elegir el momento (no "
+    "interrumpir una tarea crítica ni distraer a quien opera un equipo; esperar una pausa segura; si la persona "
+    "prefiere discreción, hacerlo en privado) y quedarse con lo que vio y escuchó, sin interpretarlo.\n"
+    "2) Siete pasos, cada uno en un renglón que empiece con 'Paso N:', con lo que hay que hacer y, entre "
+    "comillas, las palabras exactas para decir: Paso 1 Conectá (acercarse, llamarlo por su nombre y pedirle un "
+    "momento); Paso 2 Describí el hecho específico, diciendo exactamente qué viste y escuchaste, sin frases "
+    "genéricas como 'buen trabajo'; Paso 3 Preguntá abierto y escuchá para que cuente cómo lo hace (cómo decidió "
+    "hacerlo así, qué lo ayuda a hacerlo siempre así, qué riesgo evita); Paso 4 Explorá qué lo facilita y qué se "
+    "lo complica a veces; Paso 5 Reconocé el impacto de su comportamiento en él, en el equipo y en la seguridad, "
+    "sin sumar un 'pero' ni una crítica; Paso 6 Invitalo a compartirlo en la charla de seguridad o a pensar cómo "
+    "extenderlo al resto del equipo, como invitación y no como obligación; Paso 7 Agradecé su atención, "
+    "predisposición y compromiso con la seguridad.\n"
+    "3) Un bloque que empiece con la línea 'Después de la conversación': completar la tarjeta de observación "
+    "marcándola como comportamiento seguro y cargarla al sistema o colocarla en el buzón; registrar lo que la "
+    "persona mencionó que le complica y las condiciones del entorno; compartir la buena práctica en la próxima "
+    "charla de seguridad, con permiso de quien la realiza; llevar lo aprendido a la próxima planificación y "
+    "revisar que se reconozca de forma pareja a todo el equipo.\n"
+    "4) Una última línea que empiece con 'Tip:' sobre qué cuidar en este caso puntual.\n"
+    "Reglas del guion: que suene sincero y sin exagerar, sin halagos de manual; las preguntas son abiertas "
+    "y no se responden solo con sí o no; no mezcles correcciones en este mismo diálogo (si hubo un desvío, se "
+    "trabaja aparte). Indicá entre paréntesis qué hacer o esperar después de cada pregunta (por ejemplo "
+    "(escuchá sin interrumpir)). Si faltan datos, proponé ejemplos razonables y marcalos entre corchetes para que "
+    "el técnico los reemplace por lo que realmente vio. Cuando hables de compartir o difundir algo, decí 'charla "
+    "de seguridad'. Descripción de lo observado:\n"
 )
 
 PROMPT_CHARLA = (
@@ -201,18 +237,18 @@ MODOS = {
         ),
     },
     "insegura": {
-        "boton": "Conducta insegura",
-        "contexto": ABORDAJE_INSEGURO,
+        "boton": "Abordaje de conducta insegura",
+        "contexto": GUIA_ABORDAJE,
         "bienvenida": (
-            "Modo Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
+            "Modo Abordaje de conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
             "te armo el guion para abordarlo."
         ),
     },
     "segura": {
-        "boton": "Conducta segura",
-        "contexto": ABORDAJE_SEGURO,
+        "boton": "Abordaje de conducta segura",
+        "contexto": GUIA_ABORDAJE,
         "bienvenida": (
-            "Modo Conducta segura. Contame qué viste que estaba haciendo bien (tarea, qué hizo), y "
+            "Modo Abordaje de conducta segura. Contame qué viste que estaba haciendo bien (tarea, qué hizo), y "
             "te armo el guion para validarlo."
         ),
     },
@@ -374,9 +410,9 @@ INSTRUCTIVO = (
     "procedimiento largo, por ejemplo), escribilos en el pie del archivo: 'solo los puntos 4, 5 y 6', "
     "'solo bloqueo y etiquetado'. Para eso tenés que conocer el contenido del archivo. En el pie también "
     "podés indicar a quién va dirigida ('para personal de soldadura').\n\n"
-    "3. Conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
+    "3. Abordaje de conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
     "te armo el guion para abordarlo.\n\n"
-    "4. Conducta segura. Lo mismo, pero para reconocer y reforzar algo que alguien hizo bien.\n\n"
+    "4. Abordaje de conducta segura. Lo mismo, pero para reconocer y reforzar algo que alguien hizo bien.\n\n"
     "Cómo sacarle el jugo: sé concreto. Cuanto más detalle me des (tarea, lugar, qué pasó, cómo reaccionó la "
     "persona), mejor sale la respuesta. No mandes datos personales sensibles ni documentos confidenciales de "
     "tu empresa.\n\n"
