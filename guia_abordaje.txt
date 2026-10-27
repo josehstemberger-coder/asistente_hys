@@ -43,16 +43,23 @@ Paso 4. Preguntá abierto y escuchá. Hacé una pregunta y esperá la respuesta 
  - "¿Qué del entorno o de la tarea te complica trabajar seguro?" (señales, herramientas, ruido, ergonomía).
  Evitá los "¿por qué?" y las preguntas que solo se responden con "sí": generan defensa. Toda explicación, incluso la que suene a excusa, es información valiosa sobre la causa.
 Paso 5. Si no responde (por desconocimiento, miedo o vergüenza): ofrecé seguridad y bajá la presión. Ejemplo: "Esto no es un reto, quiero entender cómo lo ves vos. ¿Qué es lo que más te preocupa de esta tarea?"
-Paso 6. Que proponga él. Preguntá "¿Cómo podrías hacer este trabajo con más seguridad?" y esperá. Si no surge una idea, ofrecé una opción como sugerencia, no como orden.
-Paso 7. Acordá y agradecé. Que el trabajador exprese con sus palabras qué hará distinto, o qué necesita de vos (un equipo nuevo, otra señal, más tiempo). Agradecele su atención, predisposición y compromiso con la seguridad.
+Paso 6. Que proponga él. Preguntá "¿Cómo podrías hacer este trabajo con más seguridad?" y esperá. Si no surge una idea, ofrecé una opción como sugerencia, no como orden. Preguntale también qué necesita de vos (un equipo nuevo, otra señal, más tiempo): acá se buscan las ideas y los apoyos, y el compromiso se pide recién en el cierre.
+Paso 7. Cerrá la interacción con acuerdos. Lo importante no es hablar de seguridad, sino comprometerse a actuar. Cerrá en cinco pasos, que se dicen en tres momentos para que no suene a interrogatorio: 7.1 y 7.2 juntos, después 7.3, y al final 7.4 y 7.5 juntos.
+ 7.1 Resumí lo clave. Repasá los riesgos identificados y confirmá los controles críticos que se mencionaron. Ejemplo: "Entonces, el principal riesgo es que salte una partícula o se parta el disco, y el control clave es usar la máscara facial."
+ 7.2 Validá el entendimiento. Pedile que confirme o complemente. Ejemplo: "¿Estamos de acuerdo? ¿Agregarías algo más?" (esperá la respuesta).
+ 7.3 Generá compromiso. Pedile una acción concreta, sin repetir las preguntas del Paso 6. Ejemplo: "A partir de esto, ¿a qué te comprometés para hacerlo más seguro?" (esperá la respuesta).
+ 7.4 Reforzá la responsabilidad. Dejá claro que la seguridad depende de cada uno. Ejemplo: "Contamos con vos para aplicar estos controles en cada tarea."
+ 7.5 Agradecé y reconocé. Valorá su participación. Ejemplo: "Gracias por compartir y por tu compromiso con la seguridad."
 Ejemplo: un trabajador está amolando una pieza de hierro, sin tener colocada la máscara facial.
 - "Pedro, ¿podés detenerte un momento, por favor?"
 - "Veo que tenés puestos los lentes, la documentación de la tarea está al día y tu mesa está ordenada. Eso está muy bien, y también veo que estás amolando sin la máscara facial."
 - "¿Qué riesgos ves en esta tarea con el disco?"
 - "¿Qué podría pasar si el disco se parte?" (dejalo pensar un momento).
 - "¿Qué hace difícil usar la máscara hoy?" (escuchá sin interrumpir).
-- "¿Cómo podrías hacer el trabajo con más seguridad?"
-- "Gracias, Pedro. ¿Qué necesitás de mi parte para que sea posible?"
+- "¿Cómo podrías hacer el trabajo con más seguridad? ¿Qué necesitás de mi parte para que sea posible?"
+- "Entonces, el riesgo es que se parta el disco y el control clave es usar la máscara facial. ¿Estamos de acuerdo? ¿Agregarías algo más?"
+- "A partir de esto, ¿a qué te comprometés para hacerlo más seguro?" (esperá la respuesta).
+- "Contamos con vos para aplicar este control en cada tarea. Gracias, Pedro, por compartir y por tu compromiso con la seguridad."
 
 ETAPA 4B. INTERACCIÓN CUANDO SE OBSERVA UN COMPORTAMIENTO SEGURO
 Elegí el momento: no interrumpas una tarea crítica ni distraigas a quien opera un equipo. Esperá una pausa segura. Si la persona prefiere discreción, hacelo en privado.
@@ -65,7 +72,12 @@ Paso 3. Preguntá abierto y escuchá. Que sea él quien cuente cómo lo hace:
 Paso 4. Explorá lo que lo facilita y lo que lo dificulta. Preguntá "¿Qué hace posible hacerlo así?" y "¿Qué cosas te lo complican a veces?" Escuchá con curiosidad: es parte de lo que querés aprender.
 Paso 5. Reconocé el impacto. Decile qué efecto tiene su comportamiento en él, en el equipo y en la seguridad. Evitá sumar un "pero" o una crítica a continuación: arruina el reconocimiento.
 Paso 6. Invitalo a compartirlo. Preguntá "¿Te animarías a contarlo en la charla de seguridad?" o "¿Cómo podríamos extenderlo al resto del equipo?" Es una invitación, no una obligación.
-Paso 7. Agradecé. Agradecele su atención, predisposición y compromiso con la seguridad.
+Paso 7. Cerrá la interacción con acuerdos. Lo importante no es hablar de seguridad, sino comprometerse a actuar. Cerrá en cinco pasos, que se dicen en tres momentos para que no suene a interrogatorio: 7.1 y 7.2 juntos, después 7.3, y al final 7.4 y 7.5 juntos. No repitas el reconocimiento del Paso 5: acá se resume y se cierra.
+ 7.1 Resumí lo clave. Repasá lo que hace bien y los controles críticos que mencionó. Ejemplo: "Entonces, lo que hacés es revisar el disco antes de empezar y usar la máscara y los lentes: esos son los controles clave."
+ 7.2 Validá el entendimiento. Pedile que confirme o complemente. Ejemplo: "¿Estamos de acuerdo? ¿Agregarías algo más?" (esperá la respuesta).
+ 7.3 Generá compromiso. Invitalo a que verbalice cómo va a sostenerlo, sin repetir la invitación del Paso 6. Ejemplo: "¿A qué te comprometés para mantenerlo en cada tarea?"
+ 7.4 Reforzá la responsabilidad. Dejá claro que la seguridad depende de cada uno. Ejemplo: "Contamos con vos para aplicar estos controles en cada tarea."
+ 7.5 Agradecé y reconocé. Valorá su participación. Ejemplo: "Gracias por compartir y por tu compromiso con la seguridad."
 Ejemplo: un trabajador está amolando una pieza de hierro, con máscara facial y lentes colocados, y revisó el disco antes de empezar.
 - "Pedro, ¿tenés un momento, por favor?"
 - "Vi que revisaste el disco antes de empezar y que estás usando la máscara facial y los lentes. Además, tu mesa está ordenada y la documentación de la tarea está al día."
@@ -73,7 +85,9 @@ Ejemplo: un trabajador está amolando una pieza de hierro, con máscara facial y
 - "¿Qué riesgo evitás al hacerlo así?"
 - "¿Qué cosas te lo complican a veces?" (anotá lo que mencione del equipo o del entorno).
 - "Lo que hacés protege tu rostro y también muestra a los compañeros nuevos cómo se hace bien. ¿Te animarías a contarlo mañana en la charla de seguridad?"
-- "Gracias, Pedro, por tu atención y tu compromiso con la seguridad."
+- "Entonces, revisás el disco antes de empezar y usás la máscara y los lentes. ¿Estamos de acuerdo? ¿Agregarías algo más?"
+- "¿A qué te comprometés para mantenerlo en cada tarea?"
+- "Contamos con vos para aplicar estos controles en cada tarea. Gracias, Pedro, por compartir y por tu compromiso con la seguridad."
 
 ETAPA 5. MEJORA CONTINUA (común a ambas interacciones)
 - Completá tu tarjeta de observación, marcándola como comportamiento inseguro o seguro, y cargala al sistema o colocala en el buzón. Registrá tanto los comportamientos como las condiciones del entorno que observaste.
