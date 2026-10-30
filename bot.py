@@ -639,19 +639,39 @@ async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ----------------------------------------------------------------------------------------------
 EMOJI_ESPERA = "🤔"
 TEXTO_ESPERA = "Pensando… dame unos segundos."
+VIDEO_ESPERA = os.path.join(BASE_DIR, "pensando.mp4")  # animación cuadrada: Telegram la muestra redonda
+_espera_file_id = None  # Telegram guarda el video: después de la primera vez se reutiliza sin volver a subirlo
 
 
-async def consultar_ia(msg, *args):
-    """Llama a la IA. Mientras espera muestra un mensaje temporal (emoji + 'Pensando…') y mantiene el
-    'escribiendo...' en el chat (Telegram lo apaga a los 5 s). Los mensajes temporales se borran siempre al terminar."""
-    parar = asyncio.Event()
-    temporales = []
+async def mostrar_espera(msg):
+    """Aviso temporal de espera. Devuelve la lista de mensajes enviados para borrarlos después.
+    Primero intenta la animación redonda (pensando.mp4); si no está o falla, usa el emoji y el texto."""
+    global _espera_file_id
+    try:
+        if _espera_file_id:
+            return [await msg.reply_video_note(video_note=_espera_file_id)]
+        if os.path.exists(VIDEO_ESPERA):
+            with open(VIDEO_ESPERA, "rb") as f:
+                enviado = await msg.reply_video_note(video_note=f, length=400)
+            _espera_file_id = enviado.video_note.file_id
+            return [enviado]
+    except Exception as e:
+        _espera_file_id = None
+        log.warning("No pude enviar la animación de espera, va el emoji: %s", e)
+    enviados = []
     for texto in (EMOJI_ESPERA, TEXTO_ESPERA):
         try:
-            temporales.append(await msg.reply_text(texto))
+            enviados.append(await msg.reply_text(texto))
         except Exception as e:
             log.warning("No pude mostrar el aviso de espera: %s", e)
             break
+    return enviados
+
+
+async def consultar_ia(msg, *args):
+    """Llama a la IA. Mientras espera muestra un aviso temporal (animación redonda, o emoji + 'Pensando…') y
+    mantiene el 'escribiendo...' en el chat (Telegram lo apaga a los 5 s). Los avisos se borran siempre al terminar."""
+    parar = asyncio.Event()
 
     async def latido():
         while not parar.is_set():
@@ -665,11 +685,17 @@ async def consultar_ia(msg, *args):
                 pass
 
     tarea = asyncio.create_task(latido())
+    aviso = asyncio.create_task(mostrar_espera(msg))  # en paralelo: no retrasa la consulta a la IA
     try:
         return await asyncio.to_thread(llamar_ia, *args)
     finally:
         parar.set()
         await tarea
+        try:
+            temporales = await aviso
+        except Exception as e:
+            log.warning("Falló el aviso de espera: %s", e)
+            temporales = []
         for t in temporales:
             try:
                 await t.delete()
