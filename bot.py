@@ -512,9 +512,30 @@ def teclado_menu():
     return InlineKeyboardMarkup(filas)
 
 
+IMAGEN_MENU = os.path.join(BASE_DIR, "menu.jpg")
+_menu_file_id = None  # Telegram guarda la imagen: después de la primera vez se reutiliza sin volver a subirla
+
+
+async def enviar_menu(msg, texto="¿Qué necesitás hoy?"):
+    """Muestra el menú con la imagen (menu.jpg) y los botones. Si no hay imagen o falla el envío, manda solo texto."""
+    global _menu_file_id
+    try:
+        if _menu_file_id:
+            await msg.reply_photo(photo=_menu_file_id, caption=texto, reply_markup=teclado_menu())
+            return
+        if os.path.exists(IMAGEN_MENU):
+            with open(IMAGEN_MENU, "rb") as f:
+                enviado = await msg.reply_photo(photo=f, caption=texto, reply_markup=teclado_menu())
+            _menu_file_id = enviado.photo[-1].file_id
+            return
+    except Exception as e:
+        _menu_file_id = None
+        log.warning("No pude enviar la imagen del menú, va solo texto: %s", e)
+    await msg.reply_text(texto, reply_markup=teclado_menu())
+
+
 async def mostrar_menu(msg):
-    await msg.reply_text("¿Qué necesitás hoy? Elegí una opción (o mandá /ayuda para ver cómo funciona).",
-                         reply_markup=teclado_menu())
+    await enviar_menu(msg, "¿Qué necesitás hoy? Elegí una opción (o mandá /ayuda para ver cómo funciona).")
 
 
 INSTRUCTIVO = (
@@ -546,7 +567,7 @@ INSTRUCTIVO = (
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("modo", None)
     await update.message.reply_text(INSTRUCTIVO)
-    await update.message.reply_text("¿Qué necesitás hoy?", reply_markup=teclado_menu())
+    await enviar_menu(update.message)
 
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -555,7 +576,7 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("modo", None)
-    await update.message.reply_text("¿Qué necesitás hoy?", reply_markup=teclado_menu())
+    await enviar_menu(update.message)
 
 
 async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -616,9 +637,21 @@ async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ----------------------------------------------------------------------------------------------
 # Mensajes
 # ----------------------------------------------------------------------------------------------
+EMOJI_ESPERA = "🤔"
+TEXTO_ESPERA = "Pensando… dame unos segundos."
+
+
 async def consultar_ia(msg, *args):
-    """Llama a la IA y, mientras espera, mantiene el 'escribiendo...' en el chat (Telegram lo apaga a los 5 s)."""
+    """Llama a la IA. Mientras espera muestra un mensaje temporal (emoji + 'Pensando…') y mantiene el
+    'escribiendo...' en el chat (Telegram lo apaga a los 5 s). Los mensajes temporales se borran siempre al terminar."""
     parar = asyncio.Event()
+    temporales = []
+    for texto in (EMOJI_ESPERA, TEXTO_ESPERA):
+        try:
+            temporales.append(await msg.reply_text(texto))
+        except Exception as e:
+            log.warning("No pude mostrar el aviso de espera: %s", e)
+            break
 
     async def latido():
         while not parar.is_set():
@@ -637,6 +670,11 @@ async def consultar_ia(msg, *args):
     finally:
         parar.set()
         await tarea
+        for t in temporales:
+            try:
+                await t.delete()
+            except Exception as e:
+                log.warning("No pude borrar el aviso de espera: %s", e)
 
 
 async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -673,8 +711,9 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await responder_largo(msg, respuesta)
 
 
-async def generar_charla(msg, prompt, partes, recibido="Recibido, estoy armando la charla. Dame unos segundos."):
-    await msg.reply_text(recibido)
+async def generar_charla(msg, prompt, partes, recibido=""):
+    if recibido:
+        await msg.reply_text(recibido)
     try:
         charla = await consultar_ia(msg, "charla", prompt, partes, TIMEOUT_ARCHIVO)
     except ErrorIA as e:
@@ -705,7 +744,7 @@ async def generar_charla(msg, prompt, partes, recibido="Recibido, estoy armando 
 async def armar_charla_de_archivo(msg, texto, partes, indicacion=""):
     """Arma la charla con el material del archivo. Con indicación, desarrolla solo lo que el técnico eligió."""
     prompt = PROMPT_CHARLA
-    recibido = "Recibido, estoy armando la charla. Dame unos segundos."
+    recibido = ""
     cierre = ""
     if indicacion:
         log.info("Charla con indicación del técnico: %s", indicacion[:200])
@@ -776,7 +815,6 @@ async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         prompt += "\nDetalle que agrega el técnico: " + msg.caption
     if texto:
         prompt += "\n\nCONTENIDO DEL ARCHIVO:\n" + texto[:30000]
-    await msg.reply_text("Recibido, estoy armando el guion. Dame unos segundos.")
     try:
         respuesta = await consultar_ia(msg, modo, prompt, partes, TIMEOUT_ARCHIVO)
     except ErrorIA as e:
