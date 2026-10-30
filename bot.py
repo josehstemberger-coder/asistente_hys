@@ -639,37 +639,37 @@ async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ----------------------------------------------------------------------------------------------
 EMOJI_ESPERA = "🤔"
 TEXTO_ESPERA = "Pensando… dame unos segundos."
-VIDEO_ESPERA = os.path.join(BASE_DIR, "pensando.mp4")  # animación cuadrada: Telegram la muestra redonda
-_espera_file_id = None  # Telegram guarda el video: después de la primera vez se reutiliza sin volver a subirlo
+STICKER_ESPERA = os.path.join(BASE_DIR, "pensando.webm")  # sticker animado redondo (VP9 con transparencia, 3 s en bucle)
+_espera_file_id = None  # Telegram guarda el sticker: después de la primera vez se reutiliza sin volver a subirlo
 
 
 async def mostrar_espera(msg):
     """Aviso temporal de espera. Devuelve la lista de mensajes enviados para borrarlos después.
-    Primero intenta la animación redonda (pensando.mp4); si no está o falla, usa el emoji y el texto."""
+    Primero intenta el sticker animado redondo (pensando.webm) y el texto; si no está o falla, usa el emoji y el texto."""
     global _espera_file_id
+    enviados = []
     try:
         if _espera_file_id:
-            return [await msg.reply_video_note(video_note=_espera_file_id)]
-        if os.path.exists(VIDEO_ESPERA):
-            with open(VIDEO_ESPERA, "rb") as f:
-                enviado = await msg.reply_video_note(video_note=f, length=400)
-            _espera_file_id = enviado.video_note.file_id
-            return [enviado]
+            enviados.append(await msg.reply_sticker(sticker=_espera_file_id))
+        elif os.path.exists(STICKER_ESPERA):
+            with open(STICKER_ESPERA, "rb") as f:
+                enviado = await msg.reply_sticker(sticker=f)
+            _espera_file_id = enviado.sticker.file_id
+            enviados.append(enviado)
     except Exception as e:
         _espera_file_id = None
-        log.warning("No pude enviar la animación de espera, va el emoji: %s", e)
-    enviados = []
-    for texto in (EMOJI_ESPERA, TEXTO_ESPERA):
-        try:
-            enviados.append(await msg.reply_text(texto))
-        except Exception as e:
-            log.warning("No pude mostrar el aviso de espera: %s", e)
-            break
+        log.warning("No pude enviar el sticker de espera, va el emoji: %s", e)
+    try:
+        if not enviados:
+            enviados.append(await msg.reply_text(EMOJI_ESPERA))
+        enviados.append(await msg.reply_text(TEXTO_ESPERA))
+    except Exception as e:
+        log.warning("No pude mostrar el aviso de espera: %s", e)
     return enviados
 
 
 async def consultar_ia(msg, *args):
-    """Llama a la IA. Mientras espera muestra un aviso temporal (animación redonda, o emoji + 'Pensando…') y
+    """Llama a la IA. Mientras espera muestra un aviso temporal (sticker animado redondo, o emoji, más 'Pensando…') y
     mantiene el 'escribiendo...' en el chat (Telegram lo apaga a los 5 s). Los avisos se borran siempre al terminar."""
     parar = asyncio.Event()
 
