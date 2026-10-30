@@ -88,6 +88,93 @@ PROMPT_MENTALIDAD = (
     "SITUACIÓN:\n"
 )
 
+PROMPT_TEMA_DIRECTO = (
+    "El técnico eligió en el menú esta consulta general: «{label}». Respondé en texto corrido, en párrafos "
+    "cortos, de 250 a 350 palabras, con pasos concretos y frases textuales en voseo listas para usar, "
+    "apoyándote solo en el material de referencia, en particular en esto: {enfoque}. No inventes datos ni "
+    "promesas que el material no haga. Cerrá con una línea que lo invite a contarte su caso concreto, para "
+    "adaptar la respuesta."
+)
+
+PROMPT_MAIL = (
+    "El técnico necesita dejar por escrito un reporte de una tarea de alto riesgo. Armá el mail con el modelo "
+    "del Bono 1 del material (asunto, destinatario y copia, descripción del hecho con las acciones inmediatas, "
+    "análisis de riesgo y consecuencias, propuesta de solución ordenada por jerarquía de controles, solicitud "
+    "de respuesta con fecha y firma), adaptado al caso que cuenta. El mail va en registro formal y neutral, sin "
+    "voseo coloquial dentro del texto del mail, con hechos objetivos y sin frases de queja. Los datos que no te "
+    "dio (fechas, nombres, sector, normas, plazos) dejalos entre paréntesis para que los complete, sin "
+    "inventarlos ni citar normas que el material no mencione. Antes del mail, una línea que diga qué es; "
+    "después del mail, dos o tres líneas en voseo con los límites: un correo no reemplaza la acción, si el "
+    "riesgo es grave e inminente la tarea se detiene y se escala sin esperar respuesta, y conviene adaptarlo al "
+    "procedimiento de la empresa y pedir a un asesor legal que lo revise. Largo del mail: hasta 450 palabras.\n\n"
+    "CASO:\n"
+)
+
+# Temas del menú de Mentalidad. 'directo' = responde enseguida (consulta general); si no, pide el caso primero.
+TEMAS = [
+    {"label": "Mi jefe me presiona para no frenar una tarea crítica",
+     "boton": "Mi jefe me presiona para no frenar",
+     "enfoque": "la presión de jefes y supervisores en una tarea crítica: hablar el idioma del jefe (2.2a), "
+                "juicio crítico (2.2d), manejo de la presión de los jefes de la guía de Stop Work (2.2f), "
+                "registro por escrito y escalamiento, y las respuestas de poder del Bono 2",
+     "ejemplo": "el supervisor quiere seguir con un izaje aunque el viento aumentó y me dice que el cliente espera."},
+    {"label": "Me dicen «no hay presupuesto» o «siempre se hizo así»",
+     "boton": "Excusas: presupuesto, siempre se hizo así",
+     "enfoque": "las respuestas de poder del Bono 2 ante «no hay presupuesto» y «siempre se hizo así» (sesgo de "
+                "supervivencia), con medida provisoria de bajo costo y registro de la decisión",
+     "ejemplo": "pedí reemplazar una escalera en mal estado y el jefe me dice que no hay presupuesto."},
+    {"label": "Un operario se resiste a cumplir una norma",
+     "boton": "Un operario se resiste a la norma",
+     "enfoque": "la resistencia de los operarios: alianzas con el líder informal (2.2b), cercanía y servicio (1.2), "
+                "persuadir, conectar y validar del Pilar 3; sin sanciones",
+     "ejemplo": "un operario dice que el arnés le molesta y trabaja sin usarlo cuando no lo miro."},
+    {"label": "Tengo que hacer un Stop Work y no sé cómo decirlo",
+     "boton": "Tengo que hacer un Stop Work",
+     "enfoque": "la guía de Stop Work (2.2f): control del impulso, la estructura hecho objetivo, riesgo evolutivo y "
+                "acción correctiva, el manejo de la presión de los jefes, las preguntas finales antes del OK, y la "
+                "autoridad formal de parada (1.4)",
+     "ejemplo": "veo que el terreno cedió bajo el estabilizador de una grúa y el equipo quiere seguir."},
+    {"label": "Quiero dejar un reporte por escrito (mail de tarea de alto riesgo)",
+     "boton": "Mail de tarea de alto riesgo",
+     "enfoque": "el modelo de mail del Bono 1",
+     "ejemplo": "se está trabajando en altura sin línea de vida en el sector norte y el responsable no responde.",
+     "prompt": PROMPT_MAIL},
+    {"label": "Me tengo que calmar antes de una conversación difícil",
+     "boton": "Calmarme antes de una conversación difícil",
+     "enfoque": "la autorregulación antes del conflicto (2.1): observador externo, hablarse en tercera persona, "
+                "anclaje de propósito (la postura corporal tiene su propio tema en el menú)",
+     "ejemplo": "tengo que plantearle a la gerencia que se frene una tarea y me pongo muy nervioso."},
+    {"label": "Cómo conseguir que me tomen en serio",
+     "boton": "Que me tomen en serio (actitud, voz y hechos)",
+     "enfoque": "la autoridad que se construye con actitud, voz y hechos: el principio de autoridad (1.2: actitud, "
+                "servicio y autoridad con hechos), el registro vocal grave y las pausas, sostener la verdad frente "
+                "al poder apoyándote en hechos y registros, y hablar el idioma de la operación. No desarrolles la "
+                "postura corporal (hombros, espalda, cabeza): tiene su propio tema en el menú; si hace falta, "
+                "mencionala en una sola frase y remití a ese tema",
+     "ejemplo": "en las reuniones nadie me escucha cuando marco un desvío."},
+    {"label": "Mantenerse erguido y llevar los hombros hacia atrás",
+     "boton": "Mantenerse erguido y llevar los hombros hacia atrás",
+     "enfoque": "solo el cuerpo: «Atrévete a ser un Peligro» y la postura de poder (2.1c): postura abierta y firme, "
+                "hombros hacia atrás, cabeza en alto, contacto visual y ocupar el espacio con naturalidad; es "
+                "presencia serena y no dominio sobre nadie; no prometas efectos fisiológicos ni hormonales. No "
+                "desarrolles la voz, la actitud ni los argumentos: eso está en el tema «Cómo conseguir que me "
+                "tomen en serio»",
+     "directo": True},
+    {"label": "¿Qué hago bajo presión o durante un conflicto?",
+     "boton": "¿Qué hago bajo presión o durante un conflicto?",
+     "enfoque": "las herramientas del conflicto del Pilar 2: observador externo (2.1a), hablar el idioma del jefe "
+                "(2.2a), alianzas (2.2b), proteger la salud mental con hechos y escalamiento (2.2c), juicio crítico "
+                "(2.2d) y Stop Work (2.2f), ordenadas como un paso a paso corto",
+     "directo": True},
+]
+
+
+def teclado_temas():
+    filas = [[InlineKeyboardButton(t["boton"], callback_data="tema:%d" % i)] for i, t in enumerate(TEMAS)]
+    filas.append([InlineKeyboardButton("Escribir mi propia situación", callback_data="tema:libre")])
+    return InlineKeyboardMarkup(filas)
+
+
 PROMPT_INSEGURO = (
     "El técnico observó un comportamiento inseguro y necesita un guion para abordarlo. Armá el guion con la "
     "ETAPA 4A de la guía de abordaje positivo del material (interacción ante un comportamiento inseguro), "
@@ -252,9 +339,9 @@ MODOS = {
         "boton": "Mentalidad y habilidades",
         "contexto": MENTALIDAD,
         "bienvenida": (
-            "Modo Mentalidad y habilidades. Contame una situación concreta de dificultad o conflicto "
-            "(un jefe que presiona, un operario que se resiste, una discusión, un Stop Work) y te digo "
-            "cómo encararla."
+            "Modo Mentalidad y habilidades. Elegí un tema de la lista o escribí tu propia situación "
+            "concreta de dificultad o conflicto (un jefe que presiona, un operario que se resiste, una "
+            "discusión, un Stop Work) y te digo cómo encararla."
         ),
     },
     "charla": {
@@ -436,7 +523,7 @@ INSTRUCTIVO = (
     "Tengo cuatro herramientas:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
     "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
-    "usar. Se escribe, no hace falta archivo.\n\n"
+    "usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo.\n\n"
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
     "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el "
     "archivo, mandalo sin comentarios. Si querés que desarrolle solo algunos puntos o temas (un "
@@ -485,12 +572,73 @@ async def elegir_modo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if modo not in MODOS:
         return
     context.user_data["modo"] = modo
+    context.user_data.pop("tema", None)
+    if modo == "mentalidad":
+        await q.message.reply_text(MODOS[modo]["bienvenida"] + "\n\nPara cambiar de opción, mandá /menu.",
+                                   reply_markup=teclado_temas())
+        return
     await q.message.reply_text(MODOS[modo]["bienvenida"] + "\n\nPara cambiar de opción, mandá /menu.")
+
+
+async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    if ALLOWED_IDS and q.from_user.id not in ALLOWED_IDS:
+        return
+    clave = (q.data or "").split(":", 1)[-1]
+    context.user_data["modo"] = "mentalidad"
+    if clave == "libre":
+        context.user_data.pop("tema", None)
+        await q.message.reply_text("Perfecto. Escribime tu situación concreta (quién, qué pasó y qué necesitás) "
+                                   "y te digo cómo encararla.")
+        return
+    if not clave.isdigit() or int(clave) >= len(TEMAS):
+        return
+    tema = TEMAS[int(clave)]
+    if tema.get("directo"):
+        context.user_data.pop("tema", None)
+        prompt = PROMPT_TEMA_DIRECTO.format(label=tema["label"], enfoque=tema["enfoque"])
+        try:
+            respuesta = await consultar_ia(q.message, "mentalidad", prompt)
+        except ErrorIA as e:
+            log.error("Falló la IA: %s", e)
+            await q.message.reply_text("Ahora no pude consultar a la IA. Probá de nuevo en un ratito.")
+            return
+        await responder_largo(q.message, respuesta)
+        return
+    context.user_data["tema"] = int(clave)
+    await q.message.reply_text(
+        "Tema: " + tema["label"] + "\n\nContame tu caso en una o dos líneas (quién, qué pasó y qué "
+        "necesitás) y te digo cómo encararlo. Por ejemplo: " + tema["ejemplo"]
+    )
 
 
 # ----------------------------------------------------------------------------------------------
 # Mensajes
 # ----------------------------------------------------------------------------------------------
+async def consultar_ia(msg, *args):
+    """Llama a la IA y, mientras espera, mantiene el 'escribiendo...' en el chat (Telegram lo apaga a los 5 s)."""
+    parar = asyncio.Event()
+
+    async def latido():
+        while not parar.is_set():
+            try:
+                await msg.chat.send_action("typing")
+            except Exception:
+                pass  # si falla el aviso, no afecta la respuesta
+            try:
+                await asyncio.wait_for(parar.wait(), timeout=4)
+            except asyncio.TimeoutError:
+                pass
+
+    tarea = asyncio.create_task(latido())
+    try:
+        return await asyncio.to_thread(llamar_ia, *args)
+    finally:
+        parar.set()
+        await tarea
+
+
 async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     modo = context.user_data.get("modo")
@@ -509,9 +657,15 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     prompt = {"mentalidad": PROMPT_MENTALIDAD, "insegura": PROMPT_INSEGURO, "segura": PROMPT_SEGURO}[modo] + texto
-    await msg.chat.send_action("typing")
+    if modo == "mentalidad":
+        idx = context.user_data.pop("tema", None)
+        if idx is not None and idx < len(TEMAS):
+            tema = TEMAS[idx]
+            encuadre = ("El técnico eligió en el menú el tema «" + tema["label"] + "». Enfocá la respuesta en: "
+                        + tema["enfoque"] + ".\n\n")
+            prompt = encuadre + (tema["prompt"] + texto if tema.get("prompt") else prompt)
     try:
-        respuesta = await asyncio.to_thread(llamar_ia, modo, prompt)
+        respuesta = await consultar_ia(msg, modo, prompt)
     except ErrorIA as e:
         log.error("Falló la IA: %s", e)
         await msg.reply_text("Ahora no pude consultar a la IA. Probá de nuevo en un ratito.")
@@ -521,9 +675,8 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def generar_charla(msg, prompt, partes, recibido="Recibido, estoy armando la charla. Dame unos segundos."):
     await msg.reply_text(recibido)
-    await msg.chat.send_action("typing")
     try:
-        charla = await asyncio.to_thread(llamar_ia, "charla", prompt, partes, TIMEOUT_ARCHIVO)
+        charla = await consultar_ia(msg, "charla", prompt, partes, TIMEOUT_ARCHIVO)
     except ErrorIA as e:
         log.error("Falló la IA: %s", e)
         await msg.reply_text("Ahora no pude generar la charla. Probá de nuevo en un ratito.")
@@ -624,9 +777,8 @@ async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if texto:
         prompt += "\n\nCONTENIDO DEL ARCHIVO:\n" + texto[:30000]
     await msg.reply_text("Recibido, estoy armando el guion. Dame unos segundos.")
-    await msg.chat.send_action("typing")
     try:
-        respuesta = await asyncio.to_thread(llamar_ia, modo, prompt, partes, TIMEOUT_ARCHIVO)
+        respuesta = await consultar_ia(msg, modo, prompt, partes, TIMEOUT_ARCHIVO)
     except ErrorIA as e:
         log.error("Falló la IA: %s", e)
         await msg.reply_text("Ahora no pude generar el guion. Probá de nuevo en un ratito.")
@@ -644,6 +796,7 @@ def main():
     app.add_handler(CommandHandler("menu", menu, filters=permitido))
     app.add_handler(CommandHandler("ayuda", ayuda, filters=permitido))
     app.add_handler(CallbackQueryHandler(elegir_modo, pattern=r"^modo:"))
+    app.add_handler(CallbackQueryHandler(elegir_tema, pattern=r"^tema:"))
     app.add_handler(MessageHandler(permitido & (filters.Document.ALL | filters.PHOTO), manejar_archivo))
     app.add_handler(MessageHandler(permitido & filters.TEXT & ~filters.COMMAND, manejar_texto))
     log.info("Bot en marcha (restringido a %d IDs)" if ALLOWED_IDS else "Bot en marcha (ABIERTO a todos)",
