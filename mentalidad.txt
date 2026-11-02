@@ -410,3 +410,77 @@ Marco normativo
 -   Código Penal de la Nación Argentina, arts. 84 y 94 (homicidio y lesiones culposas).
 
 Verifica la vigencia y las modificaciones de cada norma antes de citarla. Esta guía es de carácter orientativo y no constituye asesoramiento legal.
+
+
+ANEXO. HYS INSPECCIÓN VS. HYS CONTRATISTA
+
+Apertura
+¿Alguna vez les tocó una inspección de HyS que parecía concentrarse solo en los errores y los desvíos? Un técnico o una técnica que vuelve a la oficina con el hallazgo de un operario sin lentes de seguridad, mientras los otros cincuenta que trabajaban bien pasaron sin ser mencionados.
+
+Antes de juzgar, conviene entender qué puede estar pasando. Una explicación frecuente es el sesgo de confirmación: nuestro cerebro tiende a buscar, interpretar y recordar la información que confirma lo que ya creemos, y a minimizar la que lo contradice. Si espero encontrar desvíos, voy a encontrar desvíos. Y esto no le pasa solo a la inspección. Nos pasa a todos, también a nosotros como contratistas.
+
+El conflicto
+El conflicto entre HYS de la inspección y HYS de la contratista no es entre dos personas: es entre dos lugares desde donde se mira la seguridad, y cada uno tiene una parte de razón.
+
+- Rol. Inspección: verifica que se cumplan los estándares acordados. Contratista: sostiene la seguridad dentro de la operación diaria.
+- Qué mira. Inspección: el procedimiento y los desvíos. Contratista: el campo, con sus tiempos, presiones y recursos.
+- Qué teme. Inspección: que ocurra un incidente que no marcó. Contratista: que una observación frene la tarea o termine en sanción.
+- Posición típica. Inspección: "El procedimiento se cumple como está escrito." Contratista: "Así es como se puede hacer en la práctica."
+- Interés de fondo. Inspección: que nadie se lastime y poder demostrarlo. Contratista: que nadie se lastime y poder terminar el trabajo.
+
+Las posiciones chocan, pero los intereses de fondo coinciden. El conflicto se agrava cuando cada parte defiende su posición con su autoridad: la inspección dice "se hace como yo digo o como dice el procedimiento", la contratista responde "vos no conocés el campo", y lo que ambos querían, que nadie se lastime, desaparece de la conversación. Lo que queda en juego es la confianza.
+
+El mapa y el territorio
+Una de las trampas más antiguas de nuestra profesión es confundir el mapa con el territorio. El mapa es el procedimiento escrito: detallado, ordenado, pensado para condiciones ideales. El territorio es la planta a las 6 de la tarde, con tareas retrasadas, presión de producción y cansancio acumulado.
+
+Cuando el territorio no encaja en el mapa, hay dos caminos. Uno es preguntarnos si el procedimiento contempla lo que realmente pasa en el campo. El otro es culpar a la operación, al supervisor, al trabajador o al prevencionista, e intentar doblar la realidad para que entre en el papel.
+
+Cuando se impone el segundo camino aparece el "teatro de la seguridad": la gente se cuida mientras la inspección está presente y vuelve a las prácticas de riesgo apenas se da vuelta. El exceso de control produce el efecto contrario al buscado: nos vuelve ciegos a lo que pasa cuando nadie está mirando.
+
+Detrás de esto suele haber un patrón que se repite de ambos lados: sostener una postura con "yo soy la inspección" o "yo conozco el campo" en lugar de ofrecer razones y argumentos pertinentes. Es la falacia de apelación a la autoridad, y no distingue entre inspección y contratista.
+
+Lo que hace HYS contratista (tono honesto y cercano)
+Antes de pedirle algo a la inspección, conviene preguntarnos qué hacemos nosotros para que este ciclo continúe. Si somos honestos, la tensión se alimenta de los dos lados:
+
+- Minimizamos o escondemos desvíos para evitar la sanción.
+- Nos ponemos a la defensiva ante una observación antes de escucharla completa.
+- Priorizamos que la tarea salga y dejamos el procedimiento para después.
+- Respondemos al control con silencio o con excusas, y no con datos.
+
+El resultado es el mismo que describíamos antes: criterios de corto alcance al tratar procedimientos críticos, falta de escucha e invalidación del otro. Cada parte cree que la otra es el problema, y ninguna se pregunta qué está aportando al conflicto.
+
+El abordaje: una conversación asertiva
+Si confrontamos con un "estás exagerando" o "estás siendo injusto", lo más probable es que la otra persona se defienda y no escuche. Asertividad es plantear lo que vemos y lo que proponemos con claridad y respeto, sin etiquetar al otro. Por eso, el concepto de sesgo es para entender el problema entre nosotros; con la persona nos quedamos en lo que se puede observar.
+
+En lugar de decir / Probemos con:
+- En lugar de "Estás siendo demasiado duro con la gente." → "Noté que en la recorrida marcaste cuatro desvíos y ningún acierto."
+- En lugar de "Solo buscás problemas." → "¿Qué te gustaría que lograra esta recorrida?"
+- En lugar de "Así la gente se va a esconder." → "Cuando entramos al sector, los operarios dejaron de hablar. ¿Qué notaste vos?"
+
+Los cuatro pasos de la conversación:
+1. Reconocer lo que es genuinamente valioso. "Sé que tu objetivo es que no ocurran incidentes, y valoro tu agudeza visual: no se te escapa nada." Funciona solo si es verdad. Si el reconocimiento se usa como maniobra para bajar defensas, la otra persona lo percibe y la confianza se pierde.
+2. Describir un hecho concreto, sin interpretarlo. "Cuando entramos al sector, los operarios dejaron de hablar y guardaron unas herramientas que estaban usando."
+3. Hacer una pregunta abierta. "¿Qué creés que significa eso? Si la gente nos esconde los problemas por miedo a la sanción, ¿cómo nos enteramos de que algo no está bien antes de que ocurra un incidente?"
+4. Proponer una prueba compartida. "Te propongo que en la recorrida de mañana sigamos buscando desvíos con la misma rigurosidad de siempre, pero agreguemos una regla: por cada desvío que encontremos, buscamos también una actividad que estén haciendo bien y se la decimos en voz alta. Y vemos cómo reaccionan."
+
+No le pedimos que deje de buscar desvíos: le proponemos ampliar el campo visual. Y como la propuesta es una prueba, no una imposición, el otro puede aceptarla, ajustarla o decir que no.
+
+Si la respuesta es no, la asertividad no exige que el otro cambie. Sostenemos nuestro propio estándar: ni obsecuentes ni irrespetuosos, con datos de lo que observamos, y volvemos a proponerlo más adelante.
+
+Cómo resolverlo: de las posiciones a los intereses
+La salida es mover la conversación de "quién tiene razón" a "qué necesitamos cada uno para que nadie se lastime". La conversación asertiva abre la puerta; esta hoja de ruta lleva el acuerdo a las dos organizaciones.
+
+1. Acordar el objetivo común. Empezar por lo que compartimos: cero lesiones y una operación que se pueda sostener. "Los dos queremos que todos vuelvan sanos a casa. Veamos cómo lo logramos juntos."
+2. Separar a la persona del problema. Hablar de hechos y procedimientos, no de actitudes ni intenciones. Evitar adjetivos como "exigente" o "permisivo".
+3. Poner los intereses sobre la mesa. Cada parte dice qué necesita y qué teme, sin defender todavía una solución. "A mí me preocupa que algo crítico quede sin marcar." / "A mí me preocupa que, si reporto todo, la gente se calle."
+4. Recorrer un procedimiento crítico en el campo, juntos. Elegir uno y preguntar: ¿se puede cumplir tal como está escrito, en las condiciones reales? Si no, se ajusta el procedimiento o los recursos, y no se culpa a la persona.
+5. Acordar criterios y reglas de recorrida. Definir qué es un desvío crítico y cuál uno menor, cómo se comunica cada uno, en qué plazo se cierra y cómo se reconocen los aciertos.
+6. Probar, medir y revisar. Fijar un período de prueba corto, por ejemplo dos semanas, con una revisión al final. Indicadores posibles: desvíos que la contratista reporta por iniciativa propia, tiempo de cierre y aciertos reconocidos.
+7. Escalar con hechos si no hay acuerdo. Si después de conversar directamente no hay avance, llevar un registro de hechos (no de quejas) al nivel jerárquico que corresponda, sin saltear la conversación entre las partes.
+
+Resolver no es que una parte ceda. Es sostener cada uno lo que necesita, escuchar lo que necesita el otro y encontrar un criterio que sirva a los dos.
+
+Cierre
+Un buen prevencionista no es el que levanta más desvíos, sino el que logra que los operarios confíen en él lo suficiente como para contarle la verdad. Eso vale para la inspección y vale para nosotros.
+
+Aquello a lo que le ponemos atención y energía crece. Dejemos de cuidar solo un procedimiento de papel y pongamos esa atención en la confianza: escuchemos, validemos lo que está bien, sostengamos lo que pensamos con respeto y convirtámonos en líderes que saben caminar el campo.
