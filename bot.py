@@ -110,6 +110,40 @@ PROMPT_MAIL = (
     "CASO:\n"
 )
 
+PROMPT_INSPECCION = (
+    "El técnico cuenta un caso del conflicto entre HYS de la inspección y HYS de la contratista. Armá la respuesta "
+    "en cinco partes, en este orden. Cada parte empieza con su título, escrito solo en un renglón propio, sin "
+    "símbolos ni numeración, y entre una parte y la siguiente va una línea en blanco. Los títulos son exactamente: "
+    "Lo que pasa / Qué hacer ahora / Qué decir / Qué evitar / Si no hay avance.\n"
+    "1) Lo que pasa: lectura rápida de dos o tres oraciones sobre las dos miradas y el interés que comparten, sin "
+    "dramatizar.\n"
+    "2) Qué hacer ahora: acciones concretas, en orden: primero lo que corresponde hacer con el propio equipo (si "
+    "corresponde) y después cómo preparar la conversación con la otra parte.\n"
+    "3) Qué decir: primero, si corresponde, un renglón que empiece con 'Con tu gente:' y una frase en voseo entre "
+    "comillas para el propio equipo. Después un renglón 'Con la inspección:' (o 'Con la contratista:' si el técnico "
+    "es de la inspección), seguido de los pasos de la conversación: cada paso en un renglón propio que empiece con "
+    "'Paso N:', con una línea en blanco entre un paso y el siguiente y las palabras exactas entre comillas. Si el "
+    "técnico es de la contratista, son cuatro pasos: Paso 1 Reconocé algo genuino; Paso 2 Describí un hecho "
+    "concreto sin interpretarlo; Paso 3 Preguntá abierto; Paso 4 Proponé una prueba compartida (por ejemplo, por "
+    "cada desvío buscar también algo que estén haciendo bien y decirlo en voz alta). Si el técnico es de la "
+    "inspección, son cinco pasos: Paso 1 Conectá y pedí un momento; Paso 2 Reconocé algo real; Paso 3 Describí el "
+    "hecho sin juicio; Paso 4 Preguntá abierto y escuchá; Paso 5 Cerrá con un acuerdo (resumir lo clave, validar "
+    "que se entendió y pedir un compromiso concreto).\n"
+    "4) Qué evitar: dos o tres cosas concretas, una oración cada una.\n"
+    "5) Si no hay avance: dejar registro de hechos (no de quejas) y llevarlos al nivel jerárquico que corresponda, "
+    "sin saltear la conversación entre las partes. No armes mails ni textos aparte.\n"
+    "Reglas: unir los hechos con 'y', nunca con 'pero', tampoco dentro de las frases textuales. No atribuyas "
+    "motivos, sesgos ni intenciones a la inspección, a la contratista ni a ninguna persona concreta: el sesgo de "
+    "confirmación, si lo nombrás, es una idea general (nos pasa a todos), nunca un diagnóstico de alguien; hablá de "
+    "hechos observables. La única suposición permitida es esta: si el técnico no dijo de qué lado está, la primera "
+    "línea de la respuesta, antes de los títulos, es 'Asumo que sos de la contratista. Si estás del lado de la "
+    "inspección, decímelo y lo adapto.' Nada de otras suposiciones; lo que falte del caso va entre corchetes. "
+    "Largo: de 350 a 450 palabras, en texto simple, sin markdown. Formato exacto:\n"
+    "Lo que pasa\n(texto)\n\nQué hacer ahora\n(texto)\n\nQué decir\nCon tu gente: \"...\"\n"
+    "Con la inspección:\nPaso 1: ...\n\nPaso 2: ...\n\nQué evitar\n(texto)\n\nSi no hay avance\n(texto)\n\n"
+    "CASO:\n"
+)
+
 # Temas del menú de Mentalidad. 'directo' = responde enseguida (consulta general); si no, pide el caso primero.
 TEMAS = [
     {"label": "Mi jefe me presiona para no frenar una tarea crítica",
@@ -181,7 +215,8 @@ TEMAS = [
                 "decilo en una línea al principio, sin justificar la suposición. El sesgo de "
                 "confirmación sirve para entender el problema, no para etiquetar a una persona: no se lo atribuyas a "
                 "nadie en concreto y hablá siempre de hechos observables",
-     "ejemplo": "la inspección marcó cuatro desvíos en mi sector y ningún acierto, y mi gente se pone a la defensiva."},
+     "ejemplo": "la inspección marcó cuatro desvíos en mi sector y ningún acierto, y mi gente se pone a la defensiva.",
+     "prompt": PROMPT_INSPECCION},
 ]
 
 
