@@ -480,6 +480,21 @@ La salida es mover la conversación de "quién tiene razón" a "qué necesitamos
 
 Resolver no es que una parte ceda. Es sostener cada uno lo que necesita, escuchar lo que necesita el otro y encontrar un criterio que sirva a los dos.
 
+
+Para quien está en la inspección
+La inspección también puede ampliar su mirada. Son tres movimientos: prepararse, observar sin juzgar y conversar con método.
+
+1. Prepararse antes de salir a recorrer. Preguntate qué entendés de la tarea y qué querés aprender. Preguntate qué sesgos o prejuicios traés: si espero encontrar desvíos, voy a encontrar desvíos. Acordate de cómo fue la interacción anterior con esa persona y qué pasó en los turnos anteriores. Tené en cuenta si la tarea es nueva, si hay trabajadores nuevos y si la hora del turno puede influir. Si estás distraído o no podés encarar la conversación con una intención positiva, considerá posponerla.
+
+2. Observar sin juzgar y mirar también el entorno. Mirá ampliamente: qué ves y qué escuchás. No juzgues antes de entender, y usá lo que observás como un dato de referencia, no como una conclusión. Mirá también lo que puede influir en el comportamiento: claridad de señales y carteles, herramientas y equipos, ergonomía, distracciones, limpieza, temperatura, espacio, ventilación y ruido. Registrá los aciertos con la misma rigurosidad que los desvíos.
+
+3. Conversar con el método de la guía de abordaje. Conectá y pedí un momento. Reconocé con sinceridad algo que esté bien. Describí el hecho sin juicio, uniendo lo que viste y lo que escuchaste con "y", no con "pero". Preguntá abierto y escuchá sin interrumpir. Si no responde, bajá la presión. Dejá que la contratista proponga cómo cumplirlo con más seguridad y preguntale qué necesita de vos. Cerrá con acuerdos: resumí los riesgos y los controles clave, validá que se entendió, pedí un compromiso concreto, reforzá que la seguridad depende de cada uno y agradecé.
+
+Frases para usar desde la inspección:
+- "¿Se puede cumplir este procedimiento tal como está escrito, en las condiciones reales de la planta?"
+- "Esto no es un reto, quiero entender cómo lo ven ustedes desde el campo."
+- "Marqué estos desvíos y también vi que ... ¿Cómo lo ven ustedes?"
+
 Cierre
 Un buen prevencionista no es el que levanta más desvíos, sino el que logra que los operarios confíen en él lo suficiente como para contarle la verdad. Eso vale para la inspección y vale para nosotros.
 
