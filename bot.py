@@ -166,6 +166,19 @@ TEMAS = [
                 "(2.2a), alianzas (2.2b), proteger la salud mental con hechos y escalamiento (2.2c), juicio crítico "
                 "(2.2d) y Stop Work (2.2f), ordenadas como un paso a paso corto",
      "directo": True},
+    {"label": "HYS inspección vs. HYS contratista",
+     "boton": "HYS inspección vs. HYS contratista",
+     "enfoque": "el Anexo «HYS inspección vs. HYS contratista» del material: el conflicto es entre dos lugares desde "
+                "donde se mira la seguridad y cada uno tiene parte de razón; posiciones distintas pero intereses de fondo "
+                "iguales; el mapa y el territorio y el teatro de la seguridad; la autocrítica de la contratista; la "
+                "conversación asertiva en cuatro pasos (reconocer, describir un hecho, pregunta abierta, prueba "
+                "compartida) con el cuadro «en lugar de decir / probemos con»; y la hoja de ruta de las posiciones a los "
+                "intereses. El material está escrito desde el lugar de la contratista: si el técnico es de la "
+                "inspección, adaptalo (ampliar el campo visual, reconocer los aciertos, escuchar el campo); si no aclara "
+                "de qué lado está, asumí que es de la contratista y decilo en una línea al principio. El sesgo de "
+                "confirmación sirve para entender el problema, no para etiquetar a una persona: no se lo atribuyas a "
+                "nadie en concreto y hablá siempre de hechos observables",
+     "ejemplo": "la inspección marcó cuatro desvíos en mi sector y ningún acierto, y mi gente se pone a la defensiva."},
 ]
 
 
