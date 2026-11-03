@@ -115,8 +115,9 @@ PROMPT_INSPECCION = (
     "en cinco partes, en este orden. Cada parte empieza con su título, escrito solo en un renglón propio, sin "
     "símbolos ni numeración, y entre una parte y la siguiente va una línea en blanco. Los títulos son exactamente: "
     "Lo que pasa / Qué hacer ahora / Qué decir / Qué evitar / Si no hay avance.\n"
-    "1) Lo que pasa: lectura rápida de dos o tres oraciones sobre las dos miradas y el interés que comparten, sin "
-    "dramatizar.\n"
+    "1) Lo que pasa: primero una frase corta que reconozca lo que el técnico probablemente siente, sin "
+    "dramatizar y sin darle la razón sobre la otra parte; después una lectura rápida de dos o tres oraciones sobre "
+    "las dos miradas y el interés que comparten.\n"
     "2) Qué hacer ahora: acciones concretas, en orden: primero lo que corresponde hacer con el propio equipo (si "
     "corresponde) y después cómo preparar la conversación con la otra parte.\n"
     "3) Qué decir: primero, si corresponde, un renglón que empiece con 'Con tu gente:' y una frase en voseo entre "
@@ -129,13 +130,18 @@ PROMPT_INSPECCION = (
     "inspección, son cinco pasos: Paso 1 Conectá y pedí un momento; Paso 2 Reconocé algo real; Paso 3 Describí el "
     "hecho sin juicio; Paso 4 Preguntá abierto y escuchá; Paso 5 Cerrá con un acuerdo (resumir lo clave, validar "
     "que se entendió y pedir un compromiso concreto).\n"
-    "4) Qué evitar: dos o tres cosas concretas, una oración cada una.\n"
+    "4) Qué evitar: dos o tres cosas concretas sobre cómo se plantea la conversación, una oración cada una; no "
+    "incluyas consejos sobre cómo escribir o hablar y no supongas que el técnico esconde desvíos si no lo dijo.\n"
     "5) Si no hay avance: dejar registro de hechos (no de quejas) y llevarlos al nivel jerárquico que corresponda, "
     "sin saltear la conversación entre las partes. No armes mails ni textos aparte.\n"
     "Reglas: unir los hechos con 'y', nunca con 'pero', tampoco dentro de las frases textuales. No atribuyas "
     "motivos, sesgos ni intenciones a la inspección, a la contratista ni a ninguna persona concreta: el sesgo de "
     "confirmación, si lo nombrás, es una idea general (nos pasa a todos), nunca un diagnóstico de alguien; hablá de "
-    "hechos observables. La única suposición permitida es esta: si el técnico no dijo de qué lado está, la primera "
+    "hechos observables. Los hechos del caso que el técnico no contó y el reconocimiento del primer paso van "
+    "entre corchetes, como ejemplo para que los reemplace por lo que realmente vio (por ejemplo [Reconocé algo "
+    "que realmente viste]); no le atribuyas a la otra parte acciones que el técnico no mencionó. Si el técnico "
+    "es de la inspección, no uses frases pensadas para la presión de los jefes (como «mi firma no puede avalar "
+    "esto») ni hables de normas incumplidas. La única suposición permitida es esta: si el técnico no dijo de qué lado está, la primera "
     "línea de la respuesta, antes de los títulos, es 'Asumo que sos de la contratista. Si estás del lado de la "
     "inspección, decímelo y lo adapto.' Nada de otras suposiciones; lo que falte del caso va entre corchetes. "
     "Largo: de 350 a 450 palabras, en texto simple, sin markdown. Formato exacto:\n"
@@ -594,7 +600,7 @@ INSTRUCTIVO = (
     "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia. "
     "Tengo cuatro herramientas:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
-    "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, la inspección de HYS que te invalida, etc.) y te digo cómo encararla, con frases para "
+    "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
     "usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo.\n\n"
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
     "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el "
@@ -617,6 +623,7 @@ INSTRUCTIVO = (
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("modo", None)
+    context.user_data.pop("tema", None)
     await update.message.reply_text(INSTRUCTIVO)
     await enviar_menu(update.message)
 
@@ -627,6 +634,7 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("modo", None)
+    context.user_data.pop("tema", None)
     await enviar_menu(update.message)
 
 
@@ -682,6 +690,7 @@ async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await q.message.reply_text(
         "Tema: " + tema["label"] + "\n\nContame tu caso en una o dos líneas (quién, qué pasó y qué "
         "necesitás) y te digo cómo encararlo. Por ejemplo: " + tema["ejemplo"]
+        + "\n\nPodés seguir escribiendo casos sobre este tema. Para cambiarlo, tocá otro botón de la lista o mandá /menu."
     )
 
 
@@ -773,7 +782,7 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     prompt = {"mentalidad": PROMPT_MENTALIDAD, "insegura": PROMPT_INSEGURO, "segura": PROMPT_SEGURO}[modo] + texto
     if modo == "mentalidad":
-        idx = context.user_data.pop("tema", None)
+        idx = context.user_data.get("tema")
         if idx is not None and idx < len(TEMAS):
             tema = TEMAS[idx]
             encuadre = ("El técnico eligió en el menú el tema «" + tema["label"] + "». Enfocá la respuesta en: "
