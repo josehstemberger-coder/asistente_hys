@@ -1,5 +1,4 @@
 import os
-import re
 import io
 import time
 import base64
@@ -209,18 +208,6 @@ PROMPT_INSPECCION = (
     "comprometés para hacerlo más seguro?\"\n\nQué evitar\n(texto)\n\nSi no hay avance\n(texto)\n\n"
     "CASO:\n"
 )
-
-# Detección del tema HYS inspección vs. contratista en texto libre (sin botón).
-_RE_INSPECCION = re.compile(
-    r"inspecci[oó]n\s+de\s+(?:h\.?\s?y\.?\s?s\.?|higiene)|h\.?\s?y\.?\s?s\.?\s+de\s+la\s+inspecci[oó]n"
-    r"|(?:contratista.{0,80}h\.?\s?y\.?\s?s\b|h\.?\s?y\.?\s?s\b.{0,80}contratista)",
-    re.IGNORECASE | re.DOTALL,
-)
-
-
-def es_caso_inspeccion(texto):
-    return bool(_RE_INSPECCION.search(texto or ""))
-
 
 # Temas del menú de Mentalidad. 'directo' = responde enseguida (consulta general); si no, pide el caso primero.
 TEMAS = [
@@ -860,8 +847,6 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
             encuadre = ("El técnico eligió en el menú el tema «" + tema["label"] + "». Enfocá la respuesta en: "
                         + tema["enfoque"] + ".\n\n")
             prompt = encuadre + (tema["prompt"] + texto if tema.get("prompt") else prompt)
-        elif es_caso_inspeccion(texto):
-            prompt = PROMPT_INSPECCION + texto
     try:
         respuesta = await consultar_ia(msg, modo, prompt)
     except ErrorIA as e:
