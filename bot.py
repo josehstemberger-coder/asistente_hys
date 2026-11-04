@@ -1,4 +1,5 @@
 import os
+import re
 import io
 import time
 import base64
@@ -137,18 +138,23 @@ PROMPT_INSPECCION = (
     "es de la inspección), seguido de los pasos de la conversación: cada paso en un renglón propio que empiece con "
     "'Paso N:', con una línea en blanco entre un paso y el siguiente y las palabras exactas entre comillas. Si el "
     "técnico es de la contratista, son cuatro pasos: Paso 1 Reconocé algo genuino (la frase «Sé que tu objetivo es que no "
-    "ocurran incidentes» puede ir tal cual, porque es el interés compartido; cualquier elogio específico, como la "
-    "agudeza, la agilidad o el orden, va entre corchetes como ejemplo); Paso 2 Describí un hecho "
-    "concreto sin interpretarlo, tomado solo de lo que contó el técnico (si contó poco, escribí [describí el hecho "
-    "que observaste] y no inventes detalles); Paso 3 Preguntá abierto; Paso 4 Proponé una prueba compartida (por ejemplo, por "
+    "ocurran incidentes» puede ir tal cual, porque es el interés compartido; todo reconocimiento o elogio específico, como la "
+    "agudeza, la agilidad o el orden, va siempre entre corchetes como ejemplo, nunca sin corchetes); Paso 2 Describí un hecho "
+    "concreto sin interpretarlo, tomado solo de lo que contó el técnico; si el técnico no dio un hecho puntual, el "
+    "Paso 2 es exactamente \"[describí el hecho que observaste]\", sin ejemplos, escenas ni detalles inventados, "
+    "tampoco dentro de los corchetes; Paso 3 Preguntá abierto sobre cómo ve la otra parte la situación (por "
+    "ejemplo «¿Cómo ves vos la situación en las recorridas?»), sin incluir datos ni conductas del equipo o de la "
+    "otra parte que el técnico no contó; Paso 4 Proponé una prueba compartida (por ejemplo, por "
     "cada desvío buscar también algo que estén haciendo bien y decirlo en voz alta). Si el técnico es de la "
     "inspección, son cinco pasos: Paso 1 Conectá y pedí un momento; Paso 2 Reconocé algo real (siempre entre corchetes, como "
-    "ejemplo, porque no sabés qué vio); Paso 3 Describí el hecho sin juicio, tomado solo de lo que contó el técnico; "
-    "Paso 4 Preguntá abierto y escuchá; Paso 5 Cerrá con un acuerdo: resumí lo clave, validá con «¿Estamos de "
+    "ejemplo, porque no sabés qué vio); Paso 3 Describí el hecho sin juicio, tomado solo de lo que contó el técnico "
+    "(si no dio un hecho puntual: [describí el hecho que observaste]); Paso 4 Preguntá abierto y escuchá, sin "
+    "datos inventados; Paso 5 Cerrá con un acuerdo: resumí lo clave, validá con «¿Estamos de "
     "acuerdo? ¿Agregarías algo más?» y pedí el compromiso con una pregunta como «¿A qué te comprometés para hacerlo "
     "más seguro?»; no decidas ni prometas nada por la otra parte ni por el técnico.\n"
     "4) Qué evitar: dos o tres cosas concretas sobre cómo se plantea la conversación, una oración cada una; no "
-    "incluyas consejos sobre cómo escribir o hablar y no supongas que el técnico esconde desvíos si no lo dijo.\n"
+    "incluyas consejos sobre cómo escribir o hablar, no supongas que el técnico esconde desvíos si no lo dijo y no "
+    "le atribuyas conductas que no contó (silencios, excusas, actitud defensiva, reacciones del equipo).\n"
     "5) Si no hay avance: dejar registro de hechos (no de quejas) y llevarlos al nivel jerárquico que corresponda, "
     "sin saltear la conversación entre las partes. Si algún desvío implica riesgo grave e inminente, no se espera "
     "a que haya avance: se detiene la tarea, se asegura la zona y se escala sin esperar respuesta. No armes mails "
@@ -167,9 +173,21 @@ PROMPT_INSPECCION = (
     "Largo: de 350 a 450 palabras, en texto simple, sin markdown. Formato exacto:\n"
     "Lo que pasa\n(texto)\n\nQué hacer ahora\n(texto)\n\nQué decir\nCon tu gente: \"...\"\n"
     "Con la inspección:\nPaso 1: \"Sé que tu objetivo es que no ocurran incidentes. [reconocimiento real: ...]\"\n\n"
-    "Paso 2: \"[describí el hecho que observaste]\"\n\nQué evitar\n(texto)\n\nSi no hay avance\n(texto)\n\n"
+    "Paso 2: \"[describí el hecho que observaste]\"\n\nPaso 3: \"¿Cómo ves vos la situación en las recorridas?\"\n\nQué evitar\n(texto)\n\nSi no hay avance\n(texto)\n\n"
     "CASO:\n"
 )
+
+# Detección del tema HYS inspección vs. contratista en texto libre (sin botón).
+_RE_INSPECCION = re.compile(
+    r"inspecci[oó]n\s+de\s+(?:h\.?\s?y\.?\s?s\.?|higiene)|h\.?\s?y\.?\s?s\.?\s+de\s+la\s+inspecci[oó]n"
+    r"|(?:contratista.{0,80}h\.?\s?y\.?\s?s\b|h\.?\s?y\.?\s?s\b.{0,80}contratista)",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def es_caso_inspeccion(texto):
+    return bool(_RE_INSPECCION.search(texto or ""))
+
 
 # Temas del menú de Mentalidad. 'directo' = responde enseguida (consulta general); si no, pide el caso primero.
 TEMAS = [
@@ -809,6 +827,8 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
             encuadre = ("El técnico eligió en el menú el tema «" + tema["label"] + "». Enfocá la respuesta en: "
                         + tema["enfoque"] + ".\n\n")
             prompt = encuadre + (tema["prompt"] + texto if tema.get("prompt") else prompt)
+        elif es_caso_inspeccion(texto):
+            prompt = PROMPT_INSPECCION + texto
     try:
         respuesta = await consultar_ia(msg, modo, prompt)
     except ErrorIA as e:
