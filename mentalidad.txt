@@ -180,7 +180,7 @@ Manejo de la Presión de los Jefes:
 
 Si un supervisor o jefe te presiona con el tiempo (“dale, que el cliente espera”), no cedas: devuelve la conversación a los hechos y al riesgo documentado:
 
-“Entiendo la urgencia del cronograma, pero mi juicio técnico me indica que las condiciones actuales de (viento/carga/suelo) exceden el margen de seguridad. Si procedemos así, el riesgo de un incidente crítico es alto e incontrolable. La maniobra queda detenida hasta que se corrijan esas condiciones; apenas se verifiquen, retomamos.”
+“Entiendo la urgencia del cronograma y mi juicio técnico me indica que las condiciones actuales de (viento/carga/suelo) exceden el margen de seguridad. Si procedemos así, el riesgo de un incidente crítico es alto e incontrolable. La maniobra queda detenida hasta que se corrijan esas condiciones; apenas se verifiquen, retomamos.”
 
 Si insisten en continuar: no reanudes la maniobra, informa de inmediato a la jefatura superior y al responsable de seguridad, y deja el registro por escrito. En tareas críticas (izaje, altura, espacios confinados, energías peligrosas) no se pide permiso para seguir con un riesgo documentado. La tarea se reanuda solo cuando la condición se corrigió y se verificó.
 
@@ -330,15 +330,15 @@ Cuando el supervisor o jefe intente sacarte de tu eje profesional, utiliza estas
 
 1. Ante la excusa: "No hay presupuesto para esto ahora"
 
-- Respuesta: “Entiendo que los recursos sean limitados, pero mi deber es informarte que el costo de un accidente grave o una sanción supera ampliamente la inversión en este control. Si no se asigna el presupuesto, esa decisión debe quedar registrada y ser tomada por quien tenga autoridad para hacerlo; mi firma no puede avalar el riesgo. Mientras tanto, propongo una medida provisoria de bajo costo: (…)”.
+- Respuesta: “Entiendo que los recursos sean limitados y mi deber es informarte que el costo de un accidente grave o una sanción supera ampliamente la inversión en este control. Si no se asigna el presupuesto, esa decisión debe quedar registrada y ser tomada por quien tenga autoridad para hacerlo; mi firma no puede avalar el riesgo. Mientras tanto, propongo una medida provisoria de bajo costo: (…)”.
 
 2. Ante el ataque: "Estás exagerando, siempre se hizo así y nunca pasó nada"
 
-- Respuesta: “Respeto tu experiencia, pero lo que mencionas es un sesgo de supervivencia. Que no haya ocurrido un accidente no significa que el método sea seguro; significa que hemos tenido suerte, y la gravedad no negocia. Como técnico, no gestiono la suerte: gestiono riesgos con estándares técnicos y legales, para proteger a las personas y a la operación”.
+- Respuesta: “Respeto tu experiencia y que no haya ocurrido un accidente no significa que el método sea seguro; significa que hemos tenido suerte, y la gravedad no negocia. Como técnico, no gestiono la suerte: gestiono riesgos con estándares técnicos y legales, para proteger a las personas y a la operación”.
 
 3. Ante la presión: "Si paramos la tarea, no llegamos con los tiempos"
 
-- Respuesta: “Comprendo la urgencia de producción, pero la pausa es para adecuar la tarea al procedimiento estándar. Es más eficiente detenerse diez minutos ahora para asegurar el ‘clic’ del mosquetón, que paralizar la operación por un accidente grave, con sus lesiones, su investigación y sus sanciones”.
+- Respuesta: “Comprendo la urgencia de producción y la pausa es para adecuar la tarea al procedimiento estándar. Es más eficiente detenerse diez minutos ahora para asegurar el ‘clic’ del mosquetón, que paralizar la operación por un accidente grave, con sus lesiones, su investigación y sus sanciones”.
 
 Recomendaciones Finales de Liderazgo
 
@@ -382,7 +382,7 @@ El conflicto entre HYS de la inspección y HYS de la contratista no es entre dos
 - Posición típica. Inspección: "El procedimiento se cumple como está escrito." Contratista: "Así es como se puede hacer en la práctica."
 - Interés de fondo. Inspección: que nadie se lastime y poder demostrarlo. Contratista: que nadie se lastime y poder terminar el trabajo.
 
-Las posiciones chocan, pero los intereses de fondo coinciden. El conflicto se agrava cuando cada parte defiende su posición con su autoridad: la inspección dice "se hace como yo digo o como dice el procedimiento", la contratista responde "vos no conocés el campo", y lo que ambos querían, que nadie se lastime, desaparece de la conversación. Lo que queda en juego es la confianza.
+Las posiciones chocan y los intereses de fondo coinciden. El conflicto se agrava cuando cada parte defiende su posición con su autoridad: la inspección dice "se hace como yo digo o como dice el procedimiento", la contratista responde "vos no conocés el campo", y lo que ambos querían, que nadie se lastime, desaparece de la conversación. Lo que queda en juego es la confianza.
 
 El mapa y el territorio
 Una de las trampas más antiguas de nuestra profesión es confundir el mapa con el territorio. El mapa es el procedimiento escrito: detallado, ordenado, pensado para condiciones ideales. El territorio es la planta a las 6 de la tarde, con tareas retrasadas, presión de producción y cansancio acumulado.
@@ -415,7 +415,7 @@ Los cuatro pasos de la conversación:
 1. Reconocer lo que es genuinamente valioso. "Sé que tu objetivo es que no ocurran incidentes, y valoro tu agudeza visual: no se te escapa nada." Funciona solo si es verdad. Si el reconocimiento se usa como maniobra para bajar defensas, la otra persona lo percibe y la confianza se pierde.
 2. Describir un hecho concreto, sin interpretarlo. "Cuando entramos al sector, los operarios dejaron de hablar y guardaron unas herramientas que estaban usando."
 3. Hacer una pregunta abierta. "¿Qué creés que significa eso? Si la gente nos esconde los problemas por miedo a la sanción, ¿cómo nos enteramos de que algo no está bien antes de que ocurra un incidente?"
-4. Proponer una prueba compartida. "Te propongo que en la recorrida de mañana sigamos buscando desvíos con la misma rigurosidad de siempre, pero agreguemos una regla: por cada desvío que encontremos, buscamos también una actividad que estén haciendo bien y se la decimos en voz alta. Y vemos cómo reaccionan."
+4. Proponer una prueba compartida. "Te propongo que en la recorrida de mañana sigamos buscando desvíos con la misma rigurosidad de siempre y agreguemos una regla: por cada desvío que encontremos, buscamos también una actividad que estén haciendo bien y se la decimos en voz alta. Y vemos cómo reaccionan."
 
 No le pedimos que deje de buscar desvíos: le proponemos ampliar el campo visual. Y como la propuesta es una prueba, no una imposición, el otro puede aceptarla, ajustarla o decir que no.
 
