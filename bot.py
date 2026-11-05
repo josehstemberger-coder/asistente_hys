@@ -1,11 +1,13 @@
 import os
 import io
+import functools
 import time
 import base64
 import asyncio
 import logging
 
 import requests
+import almacen
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -16,6 +18,14 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 ALLOWED_IDS = [int(x) for x in os.getenv("ALLOWED_IDS", "").split(",") if x.strip().isdigit()]
+# Administradores (pueden invitar gente y ver estadísticas). Si no se define ADMIN_IDS, lo son los de ALLOWED_IDS.
+ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip().isdigit()] or list(ALLOWED_IDS)
+# Si es "1", se guarda el texto de la consulta y de la respuesta junto con la opinión (por defecto NO se guarda).
+GUARDAR_TEXTOS = os.getenv("GUARDAR_TEXTOS", "0").strip() == "1"
+# Base de datos: en Railway conviene un Volume montado en /data; si no existe, se usa la carpeta del bot.
+DB_PATH = os.getenv("DB_PATH") or (
+    "/data/asistente.db" if os.path.isdir("/data") else os.path.join(os.path.dirname(os.path.abspath(__file__)), "asistente.db")
+)
 
 MODELOS = [m.strip() for m in os.getenv("MODELOS", "").split(",") if m.strip()] or [
     "gemini-3.8-flash",
@@ -580,9 +590,37 @@ def partir_mensaje(texto, limite=MAX_TELEGRAM):
     return trozos
 
 
-async def responder_largo(msg, texto):
-    for trozo in partir_mensaje(texto):
-        await msg.reply_text(trozo)
+MOTIVOS_NEGATIVOS = {1: "muy largo", 2: "no sirve para mi caso", 3: "datos inventados", 4: "tono o lenguaje"}
+
+
+def teclado_voto(rid):
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton("👍 Me sirvió", callback_data="fb:%d:up" % rid),
+        InlineKeyboardButton("👎 No me sirvió", callback_data="fb:%d:down" % rid),
+    ]])
+
+
+def teclado_motivos(rid):
+    filas = [[InlineKeyboardButton(t.capitalize(), callback_data="fbr:%d:%d" % (rid, k))]
+             for k, t in MOTIVOS_NEGATIVOS.items()]
+    filas.append([InlineKeyboardButton("Prefiero no decir", callback_data="fbr:%d:0" % rid)])
+    return InlineKeyboardMarkup(filas)
+
+
+async def responder_largo(msg, texto, ctx=None):
+    """Envía la respuesta. Con ctx (modo, tema, pregunta) deja registrada la respuesta y agrega los botones de
+    opinión en el último mensaje. Si la base de datos falla, la respuesta sale igual, sin botones."""
+    trozos = partir_mensaje(texto)
+    teclado = None
+    if ctx:
+        try:
+            rid = almacen.registrar_respuesta(msg.chat.id, ctx.get("modo"), ctx.get("tema"), ctx.get("pregunta"),
+                                              texto, GUARDAR_TEXTOS)
+            teclado = teclado_voto(rid)
+        except Exception as e:
+            log.warning("No pude registrar la respuesta: %s", e)
+    for i, trozo in enumerate(trozos):
+        await msg.reply_text(trozo, reply_markup=teclado if i == len(trozos) - 1 else None)
 
 
 def texto_a_docx(texto, titulo="Charla de seguridad de 5 minutos"):
@@ -688,17 +726,113 @@ INSTRUCTIVO = (
 )
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+TEXTO_SIN_ACCESO = ("Este asistente es de uso privado. Si tenés un código de invitación, mandame "
+                    "/start seguido del código (por ejemplo: /start ABCD2345).")
+
+
+def autorizado(uid):
+    if uid in ALLOWED_IDS or uid in ADMIN_IDS:
+        return True
+    try:
+        return almacen.usuario_activo(uid)
+    except Exception as e:
+        log.warning("No pude consultar la base de usuarios: %s", e)
+        return False
+
+
+async def _sin_acceso(update):
+    if update.callback_query:
+        await update.callback_query.answer()
+    elif update.message:
+        await update.message.reply_text(TEXTO_SIN_ACCESO)
+
+
+def requiere_acceso(func):
+    """Deja pasar solo a quien tiene acceso. También recupera y guarda el modo y el tema de cada persona en la
+    base de datos, para que no se pierdan cuando el bot se reinicia."""
+    @functools.wraps(func)
+    async def envoltura(update, context):
+        u = update.effective_user
+        if not u or not autorizado(u.id):
+            await _sin_acceso(update)
+            return
+        if not context.user_data.get("_cargado"):
+            try:
+                modo, tema = almacen.estado_get(u.id)
+                if modo in MODOS:
+                    context.user_data["modo"] = modo
+                    if tema is not None and 0 <= tema < len(TEMAS):
+                        context.user_data["tema"] = tema
+            except Exception as e:
+                log.warning("No pude recuperar el estado: %s", e)
+            context.user_data["_cargado"] = True
+        antes = (context.user_data.get("modo"), context.user_data.get("tema"))
+        try:
+            return await func(update, context)
+        finally:
+            ahora = (context.user_data.get("modo"), context.user_data.get("tema"))
+            if ahora != antes:
+                try:
+                    almacen.estado_set(u.id, *ahora)
+                except Exception as e:
+                    log.warning("No pude guardar el estado: %s", e)
+    return envoltura
+
+
+def requiere_admin(func):
+    @functools.wraps(func)
+    async def envoltura(update, context):
+        u = update.effective_user
+        if not u or u.id not in ADMIN_IDS:
+            return
+        return await func(update, context)
+    return envoltura
+
+
+@requiere_acceso
+async def inicio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("modo", None)
     context.user_data.pop("tema", None)
     await update.message.reply_text(INSTRUCTIVO)
     await enviar_menu(update.message)
 
 
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/start. Quien todavía no tiene acceso puede activarlo con un código de invitación: /start CODIGO."""
+    u = update.effective_user
+    if u and not autorizado(u.id):
+        codigo = (context.args[0] if getattr(context, "args", None) else "").strip()
+        if not codigo:
+            await _sin_acceso(update)
+            return
+        nombre = (u.full_name or u.username or "") if hasattr(u, "full_name") else ""
+        try:
+            ok, motivo, creador = almacen.canjear_codigo(codigo, u.id, nombre)
+        except Exception as e:
+            log.warning("No pude canjear el código: %s", e)
+            await update.message.reply_text("Ahora no pude validar el código. Probá de nuevo en un rato.")
+            return
+        if not ok:
+            texto = {"no_existe": "Ese código no existe. Revisá que esté bien escrito.",
+                     "vencido": "Ese código ya venció. Pedile uno nuevo a quien te invitó.",
+                     "agotado": "Ese código ya fue usado. Pedile uno nuevo a quien te invitó."}[motivo]
+            await update.message.reply_text(texto)
+            return
+        await update.message.reply_text("¡Listo! Tu acceso quedó activado.")
+        if creador:
+            try:
+                await context.bot.send_message(creador, "%s (ID %d) activó el código %s." % (nombre or "Alguien", u.id, codigo.upper()))
+            except Exception as e:
+                log.warning("No pude avisar al administrador: %s", e)
+    await inicio(update, context)
+
+
+@requiere_acceso
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(INSTRUCTIVO)
 
 
+@requiere_acceso
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("modo", None)
     context.user_data.pop("tema", None)
@@ -709,11 +843,9 @@ async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Tu ID es {update.effective_user.id}")
 
 
+@requiere_acceso
 async def elegir_modo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
-    if ALLOWED_IDS and q.from_user.id not in ALLOWED_IDS:
-        await q.answer()
-        return
     await q.answer()
     modo = (q.data or "").split(":", 1)[-1]
     if modo not in MODOS:
@@ -727,11 +859,10 @@ async def elegir_modo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await q.message.reply_text(MODOS[modo]["bienvenida"] + "\n\nPara cambiar de opción, mandá /menu.")
 
 
+@requiere_acceso
 async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
-    if ALLOWED_IDS and q.from_user.id not in ALLOWED_IDS:
-        return
     clave = (q.data or "").split(":", 1)[-1]
     context.user_data["modo"] = "mentalidad"
     if clave == "libre":
@@ -751,7 +882,7 @@ async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
             log.error("Falló la IA: %s", e)
             await q.message.reply_text("Ahora no pude consultar a la IA. Probá de nuevo en un ratito.")
             return
-        await responder_largo(q.message, respuesta)
+        await responder_largo(q.message, respuesta, {"modo": "mentalidad", "tema": int(clave), "pregunta": tema["label"]})
         return
     context.user_data["tema"] = int(clave)
     await q.message.reply_text(
@@ -830,6 +961,7 @@ async def consultar_ia(msg, *args):
                 log.warning("No pude borrar el aviso de espera: %s", e)
 
 
+@requiere_acceso
 async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     modo = context.user_data.get("modo")
@@ -844,7 +976,7 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                  "(pegalo completo). Con un mensaje corto no alcanza.")
             return
         prompt = PROMPT_CHARLA + "\n\nMATERIAL:\n" + texto[:60000]
-        await generar_charla(msg, prompt, None)
+        await generar_charla(msg, prompt, None, ctx={"modo": "charla", "pregunta": texto})
         return
 
     prompt = {"mentalidad": PROMPT_MENTALIDAD, "insegura": PROMPT_INSEGURO, "segura": PROMPT_SEGURO}[modo] + texto
@@ -861,10 +993,11 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log.error("Falló la IA: %s", e)
         await msg.reply_text("Ahora no pude consultar a la IA. Probá de nuevo en un ratito.")
         return
-    await responder_largo(msg, respuesta)
+    await responder_largo(msg, respuesta, {"modo": modo, "tema": context.user_data.get("tema") if modo == "mentalidad" else None,
+                                           "pregunta": texto})
 
 
-async def generar_charla(msg, prompt, partes, recibido=""):
+async def generar_charla(msg, prompt, partes, recibido="", ctx=None):
     if recibido:
         await msg.reply_text(recibido)
     try:
@@ -887,7 +1020,7 @@ async def generar_charla(msg, prompt, partes, recibido=""):
     if marca.startswith("AVISO"):
         await msg.reply_text("Ojo: " + (primera.split(":", 1)[-1].strip() or "no encontré alguno de los puntos."))
         charla = resto.strip()
-    await responder_largo(msg, charla)
+    await responder_largo(msg, charla, ctx)
     contenido, ext = await asyncio.to_thread(texto_a_docx, charla)
     bio = io.BytesIO(contenido)
     bio.name = f"charla_5_minutos.{ext}"
@@ -917,9 +1050,10 @@ async def armar_charla_de_archivo(msg, texto, partes, indicacion=""):
             partes = list(partes) + [{"text": cierre}]  # queda después del PDF o la imagen
         else:
             prompt += cierre
-    await generar_charla(msg, prompt, partes, recibido)
+    await generar_charla(msg, prompt, partes, recibido, ctx={"modo": "charla", "pregunta": indicacion or "(archivo)"})
 
 
+@requiere_acceso
 async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     modo = context.user_data.get("modo")
@@ -974,26 +1108,201 @@ async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log.error("Falló la IA: %s", e)
         await msg.reply_text("Ahora no pude generar el guion. Probá de nuevo en un ratito.")
         return
-    await responder_largo(msg, respuesta)
+    await responder_largo(msg, respuesta, {"modo": modo, "pregunta": msg.caption or "(archivo)"})
+
+
+# ----------------------------------------------------------------------------------------------
+# Opiniones (botones 👍 / 👎)
+# ----------------------------------------------------------------------------------------------
+
+
+@requiere_acceso
+async def opinion(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    partes = (q.data or "").split(":")
+    if len(partes) != 3 or not partes[1].isdigit() or partes[2] not in ("up", "down"):
+        await q.answer()
+        return
+    rid, voto = int(partes[1]), (1 if partes[2] == "up" else -1)
+    try:
+        ok = almacen.votar(rid, q.message.chat.id, voto)
+    except Exception as e:
+        log.warning("No pude guardar la opinión: %s", e)
+        await q.answer("Ahora no pude guardar tu opinión.")
+        return
+    if not ok:
+        await q.answer()
+        return
+    try:
+        if voto == 1:
+            await q.answer("¡Gracias por tu opinión!")
+            await q.edit_message_reply_markup(reply_markup=None)
+        else:
+            await q.answer("Gracias. ¿Qué falló?")
+            await q.edit_message_reply_markup(reply_markup=teclado_motivos(rid))
+    except Exception as e:
+        log.warning("No pude actualizar los botones: %s", e)
+
+
+@requiere_acceso
+async def opinion_motivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    partes = (q.data or "").split(":")
+    if len(partes) != 3 or not partes[1].isdigit() or not partes[2].isdigit():
+        await q.answer()
+        return
+    rid, codigo = int(partes[1]), int(partes[2])
+    try:
+        if codigo in MOTIVOS_NEGATIVOS:
+            almacen.motivo(rid, q.message.chat.id, codigo)
+        await q.answer("Gracias, lo tengo en cuenta.")
+        await q.edit_message_reply_markup(reply_markup=None)
+    except Exception as e:
+        log.warning("No pude guardar el motivo: %s", e)
+
+
+# ----------------------------------------------------------------------------------------------
+# Administración (solo ADMIN_IDS)
+# ----------------------------------------------------------------------------------------------
+
+
+def _fecha(ts):
+    return time.strftime("%d/%m/%Y", time.localtime(ts)) if ts else "-"
+
+
+@requiere_admin
+async def invitar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/invitar [usos] [días]: crea un código de invitación (por defecto 1 uso y 7 días)."""
+    args = getattr(context, "args", None) or []
+    try:
+        usos = min(max(int(args[0]), 1), 50) if len(args) > 0 else 1
+        dias = min(max(int(args[1]), 1), 60) if len(args) > 1 else 7
+    except ValueError:
+        await update.message.reply_text("Uso: /invitar [usos] [días]. Por ejemplo: /invitar 3 14")
+        return
+    codigo = almacen.crear_codigo(update.effective_user.id, usos, dias)
+    usuario = getattr(context.bot, "username", "") or ""
+    enlace = ("https://t.me/%s?start=%s" % (usuario, codigo)) if usuario else ""
+    texto = ("Código de invitación: %s\nVale para %d persona(s) y vence en %d días.\n\n"
+             "Pasale este mensaje a quien quieras invitar: abrí el bot y mandá /start %s"
+             % (codigo, usos, dias, codigo))
+    if enlace:
+        texto += "\nO que toque este enlace: " + enlace
+    await update.message.reply_text(texto)
+
+
+@requiere_admin
+async def usuarios(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    filas = ["Fijos (variables del servidor): " + (", ".join(str(i) for i in dict.fromkeys(ALLOWED_IDS + ADMIN_IDS)) or "ninguno")]
+    registrados = almacen.listar_usuarios()
+    filas.append("Registrados con invitación: %d" % len(registrados))
+    for u in registrados:
+        filas.append("%d - %s - alta %s - %s" % (u["id"], u["nombre"] or "sin nombre", _fecha(u["alta"]),
+                                                  "activo" if u["activo"] else "dado de baja"))
+    await responder_largo(update.message, "\n".join(filas))
+
+
+@requiere_admin
+async def baja(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = getattr(context, "args", None) or []
+    if not args or not args[0].lstrip("-").isdigit():
+        await update.message.reply_text("Uso: /baja ID (el ID lo ves con /usuarios)")
+        return
+    uid = int(args[0])
+    if uid in ALLOWED_IDS or uid in ADMIN_IDS:
+        await update.message.reply_text("Ese ID está fijo en las variables del servidor (ALLOWED_IDS o ADMIN_IDS). "
+                                        "Para quitarlo, sacalo de ahí en Railway.")
+        return
+    ok = almacen.baja_usuario(uid)
+    await update.message.reply_text("Listo, se dio de baja al ID %d." % uid if ok else "Ese ID no está registrado.")
+
+
+@requiere_admin
+async def alta(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = getattr(context, "args", None) or []
+    if not args or not args[0].lstrip("-").isdigit():
+        await update.message.reply_text("Uso: /alta ID (para dar acceso directo o reactivar a alguien)")
+        return
+    almacen.alta_usuario(int(args[0]), "", "manual")
+    await update.message.reply_text("Listo, el ID %s tiene acceso." % args[0])
+
+
+@requiere_admin
+async def estadisticas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    e = almacen.estadisticas(7)
+    votos = e["positivos"] + e["negativos"]
+    filas = [
+        "Últimos 7 días",
+        "Consultas: %d (total histórico: %d)" % (e["recientes"], e["total"]),
+        "Personas que usaron el bot: %d (registradas con invitación: %d)" % (e["activos"], e["usuarios"]),
+    ]
+    if e["por_modo"]:
+        filas.append("Por función: " + ", ".join("%s %d" % (MODOS[m]["boton"] if m in MODOS and "boton" in MODOS[m] else m, n)
+                                                for m, n in e["por_modo"].items()))
+    if e["por_tema"]:
+        filas.append("Temas más usados: " + ", ".join(
+            "%s %d" % (TEMAS[t]["boton"] if 0 <= t < len(TEMAS) else t, n) for t, n in list(e["por_tema"].items())[:5]))
+    if votos:
+        filas.append("Opiniones: %d positivas, %d negativas (%d%% positivas)" % (
+            e["positivos"], e["negativos"], round(100 * e["positivos"] / votos)))
+    else:
+        filas.append("Opiniones: todavía no hay.")
+    if e["motivos"]:
+        filas.append("Motivos de las negativas: " + ", ".join(
+            "%s %d" % (MOTIVOS_NEGATIVOS.get(k, "otro"), n) for k, n in e["motivos"].items()))
+    filas.append("Base de datos: " + str(almacen.ruta()))
+    await update.message.reply_text("\n".join(filas))
+
+
+@requiere_admin
+async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    filas = almacen.ultimos_negativos(10)
+    if not filas:
+        await update.message.reply_text("Todavía no hay opiniones negativas.")
+        return
+    salida = []
+    for f in filas:
+        tema = TEMAS[f["tema"]]["boton"] if f["tema"] is not None and 0 <= f["tema"] < len(TEMAS) else "-"
+        linea = "%s - %s - %s - motivo: %s" % (_fecha(f["ts"]), f["modo"], tema, MOTIVOS_NEGATIVOS.get(f["motivo"], "sin decir"))
+        if f["pregunta"]:
+            linea += "\nConsulta: " + f["pregunta"][:300]
+        salida.append(linea)
+    if not GUARDAR_TEXTOS:
+        salida.append("(Los textos no se guardan. Para verlos, poné GUARDAR_TEXTOS=1 en las variables del servidor.)")
+    await responder_largo(update.message, "\n\n".join(salida))
 
 
 def main():
     if not TELEGRAM_BOT_TOKEN or not GEMINI_API_KEY:
         raise SystemExit("Faltan las variables TELEGRAM_BOT_TOKEN o GEMINI_API_KEY")
+    if not ALLOWED_IDS and not ADMIN_IDS:
+        raise SystemExit("Falta definir ALLOWED_IDS (o ADMIN_IDS) con tu ID de Telegram: sin eso nadie podría "
+                         "administrar el bot.")
+    almacen.iniciar(DB_PATH)
+    if not DB_PATH.startswith("/data"):
+        log.warning("La base está en %s. Si no es un volumen persistente, los usuarios invitados y las opiniones "
+                    "se pierden en cada despliegue. En Railway, agregá un Volume montado en /data.", DB_PATH)
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
-    permitido = filters.User(user_id=ALLOWED_IDS) if ALLOWED_IDS else filters.ALL
     app.add_handler(CommandHandler("id", mi_id))
-    app.add_handler(CommandHandler("start", start, filters=permitido))
-    app.add_handler(CommandHandler("menu", menu, filters=permitido))
-    app.add_handler(CommandHandler("ayuda", ayuda, filters=permitido))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("canjear", start))
+    app.add_handler(CommandHandler("menu", menu))
+    app.add_handler(CommandHandler("ayuda", ayuda))
+    app.add_handler(CommandHandler("invitar", invitar))
+    app.add_handler(CommandHandler("usuarios", usuarios))
+    app.add_handler(CommandHandler("baja", baja))
+    app.add_handler(CommandHandler("alta", alta))
+    app.add_handler(CommandHandler("estadisticas", estadisticas))
+    app.add_handler(CommandHandler("feedback", feedback))
     app.add_handler(CallbackQueryHandler(elegir_modo, pattern=r"^modo:"))
     app.add_handler(CallbackQueryHandler(elegir_tema, pattern=r"^tema:"))
-    app.add_handler(MessageHandler(permitido & (filters.Document.ALL | filters.PHOTO), manejar_archivo))
-    app.add_handler(MessageHandler(permitido & filters.TEXT & ~filters.COMMAND, manejar_texto))
-    log.info("Bot en marcha (restringido a %d IDs)" if ALLOWED_IDS else "Bot en marcha (ABIERTO a todos)",
-             *([len(ALLOWED_IDS)] if ALLOWED_IDS else []))
+    app.add_handler(CallbackQueryHandler(opinion, pattern=r"^fb:"))
+    app.add_handler(CallbackQueryHandler(opinion_motivo, pattern=r"^fbr:"))
+    app.add_handler(MessageHandler(filters.Document.ALL | filters.PHOTO, manejar_archivo))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_texto))
+    log.info("Bot en marcha (fijos: %d, administradores: %d, guardar textos: %s)", len(ALLOWED_IDS), len(ADMIN_IDS),
+             "sí" if GUARDAR_TEXTOS else "no")
     app.run_polling(drop_pending_updates=True)
-
 
 if __name__ == "__main__":
     main()
