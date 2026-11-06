@@ -610,9 +610,10 @@ def teclado_motivos(rid):
     return InlineKeyboardMarkup(filas)
 
 
-def _protegido(ctx):
-    """True si la respuesta es de Mentalidad y habilidades y no es el modelo de mail (que hay que poder copiar)."""
-    if not PROTEGER_MENTALIDAD or not ctx or ctx.get("modo") != "mentalidad":
+def _protegido(ctx, uid=None):
+    """True si la respuesta es de Mentalidad y habilidades y no es el modelo de mail (que hay que poder copiar).
+    Los administradores nunca reciben contenido protegido: pueden copiar y hacer capturas."""
+    if not PROTEGER_MENTALIDAD or not ctx or ctx.get("modo") != "mentalidad" or uid in ADMIN_IDS:
         return False
     tema = ctx.get("tema")
     if tema is not None and 0 <= tema < len(TEMAS) and TEMAS[tema].get("prompt") is PROMPT_MAIL:
@@ -632,7 +633,7 @@ async def responder_largo(msg, texto, ctx=None):
             teclado = teclado_voto(rid)
         except Exception as e:
             log.warning("No pude registrar la respuesta: %s", e)
-    extra = {"protect_content": True} if _protegido(ctx) else {}
+    extra = {"protect_content": True} if _protegido(ctx, msg.chat.id) else {}
     for i, trozo in enumerate(trozos):
         await msg.reply_text(trozo, reply_markup=teclado if i == len(trozos) - 1 else None, **extra)
 
