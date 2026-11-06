@@ -22,6 +22,9 @@ ALLOWED_IDS = [int(x) for x in os.getenv("ALLOWED_IDS", "").split(",") if x.stri
 ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip().isdigit()] or list(ALLOWED_IDS)
 # Si es "1", se guarda el texto de la consulta y de la respuesta junto con la opinión (por defecto NO se guarda).
 GUARDAR_TEXTOS = os.getenv("GUARDAR_TEXTOS", "0").strip() == "1"
+# Si es "1" (por defecto), las respuestas de Mentalidad y habilidades salen con contenido protegido: no se pueden
+# reenviar, guardar ni copiar. El mail, las charlas y los abordajes quedan libres. Con "0" se desactiva.
+PROTEGER_MENTALIDAD = os.getenv("PROTEGER_MENTALIDAD", "1").strip() != "0"
 # Base de datos: en Railway conviene un Volume montado en /data; si no existe, se usa la carpeta del bot.
 DB_PATH = os.getenv("DB_PATH") or (
     "/data/asistente.db" if os.path.isdir("/data") else os.path.join(os.path.dirname(os.path.abspath(__file__)), "asistente.db")
@@ -607,6 +610,16 @@ def teclado_motivos(rid):
     return InlineKeyboardMarkup(filas)
 
 
+def _protegido(ctx):
+    """True si la respuesta es de Mentalidad y habilidades y no es el modelo de mail (que hay que poder copiar)."""
+    if not PROTEGER_MENTALIDAD or not ctx or ctx.get("modo") != "mentalidad":
+        return False
+    tema = ctx.get("tema")
+    if tema is not None and 0 <= tema < len(TEMAS) and TEMAS[tema].get("prompt") is PROMPT_MAIL:
+        return False
+    return True
+
+
 async def responder_largo(msg, texto, ctx=None):
     """Envía la respuesta. Con ctx (modo, tema, pregunta) deja registrada la respuesta y agrega los botones de
     opinión en el último mensaje. Si la base de datos falla, la respuesta sale igual, sin botones."""
@@ -619,8 +632,9 @@ async def responder_largo(msg, texto, ctx=None):
             teclado = teclado_voto(rid)
         except Exception as e:
             log.warning("No pude registrar la respuesta: %s", e)
+    extra = {"protect_content": True} if _protegido(ctx) else {}
     for i, trozo in enumerate(trozos):
-        await msg.reply_text(trozo, reply_markup=teclado if i == len(trozos) - 1 else None)
+        await msg.reply_text(trozo, reply_markup=teclado if i == len(trozos) - 1 else None, **extra)
 
 
 def texto_a_docx(texto, titulo="Charla de seguridad de 5 minutos"):
@@ -740,11 +754,37 @@ def autorizado(uid):
         return False
 
 
-async def _sin_acceso(update):
+async def _avisar_intento(update, context):
+    """Avisa a los administradores la primera vez que alguien sin acceso escribe al bot (máximo 5 avisos por hora,
+    para que nadie los inunde)."""
+    u = update.effective_user
+    if not u:
+        return
+    nombre = (getattr(u, "full_name", "") or "")
+    try:
+        nuevo, recientes = almacen.registrar_intento(u.id, nombre)
+    except Exception as e:
+        log.warning("No pude registrar el intento de acceso: %s", e)
+        return
+    if not nuevo or recientes > 5:
+        return
+    usuario = ("@" + u.username) if getattr(u, "username", None) else "sin usuario"
+    texto = ("Alguien sin acceso escribió al bot: %s (%s, ID %d). Si lo invitaste, mandale un código con /invitar; "
+             "si no, quizás un código o el bot circuló. Los intentos quedan en /usuarios." % (nombre or "sin nombre", usuario, u.id))
+    for admin in ADMIN_IDS:
+        try:
+            await context.bot.send_message(admin, texto)
+        except Exception as e:
+            log.warning("No pude avisar al administrador %s: %s", admin, e)
+
+
+async def _sin_acceso(update, context=None):
     if update.callback_query:
         await update.callback_query.answer()
     elif update.message:
         await update.message.reply_text(TEXTO_SIN_ACCESO)
+        if context is not None:
+            await _avisar_intento(update, context)
 
 
 def requiere_acceso(func):
@@ -754,7 +794,7 @@ def requiere_acceso(func):
     async def envoltura(update, context):
         u = update.effective_user
         if not u or not autorizado(u.id):
-            await _sin_acceso(update)
+            await _sin_acceso(update, context)
             return
         if not context.user_data.get("_cargado"):
             try:
@@ -803,7 +843,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if u and not autorizado(u.id):
         codigo = (context.args[0] if getattr(context, "args", None) else "").strip()
         if not codigo:
-            await _sin_acceso(update)
+            await _sin_acceso(update, context)
             return
         nombre = (u.full_name or u.username or "") if hasattr(u, "full_name") else ""
         try:
@@ -817,6 +857,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                      "vencido": "Ese código ya venció. Pedile uno nuevo a quien te invitó.",
                      "agotado": "Ese código ya fue usado. Pedile uno nuevo a quien te invitó."}[motivo]
             await update.message.reply_text(texto)
+            await _avisar_intento(update, context)
             return
         await update.message.reply_text("¡Listo! Tu acceso quedó activado.")
         if creador:
@@ -1197,8 +1238,14 @@ async def usuarios(update: Update, context: ContextTypes.DEFAULT_TYPE):
     registrados = almacen.listar_usuarios()
     filas.append("Registrados con invitación: %d" % len(registrados))
     for u in registrados:
-        filas.append("%d - %s - alta %s - %s" % (u["id"], u["nombre"] or "sin nombre", _fecha(u["alta"]),
-                                                  "activo" if u["activo"] else "dado de baja"))
+        filas.append("%d - %s - alta %s - %s - entró por: %s" % (
+            u["id"], u["nombre"] or "sin nombre", _fecha(u["alta"]),
+            "activo" if u["activo"] else "dado de baja", u["via"] or "-"))
+    intentos = almacen.ultimos_intentos(10)
+    filas.append("")
+    filas.append("Intentos de personas sin acceso (últimos 10): %d" % len(intentos))
+    for i in intentos:
+        filas.append("%d - %s - %d intento(s), el último el %s" % (i["id"], i["nombre"] or "sin nombre", i["veces"], _fecha(i["ultimo"])))
     await responder_largo(update.message, "\n".join(filas))
 
 
