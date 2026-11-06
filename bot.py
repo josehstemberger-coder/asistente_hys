@@ -720,7 +720,7 @@ INSTRUCTIVO = (
     "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia. "
     "Tengo cuatro herramientas:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
-    "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
+    "pares una tarea, un operario que se resiste a usar EPP, una discusión, alguien que te falta el respeto, la inspección que te invalida, etc.) y te digo cómo encararla, con frases para "
     "usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo.\n\n"
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
     "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el "
