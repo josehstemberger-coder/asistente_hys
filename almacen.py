@@ -49,6 +49,13 @@ CREATE TABLE IF NOT EXISTS respuestas (
     motivo INTEGER
 );
 CREATE INDEX IF NOT EXISTS ix_respuestas_ts ON respuestas (ts);
+CREATE TABLE IF NOT EXISTS intentos (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT,
+    primero INTEGER,
+    ultimo INTEGER,
+    veces INTEGER NOT NULL DEFAULT 1
+);
 """
 
 
@@ -104,6 +111,27 @@ def baja_usuario(uid):
 def listar_usuarios():
     with _con() as c:
         return [dict(f) for f in c.execute("SELECT * FROM usuarios ORDER BY alta")]
+
+
+# ---------------------------------------------------------------- intentos de personas sin acceso
+
+def registrar_intento(uid, nombre=""):
+    """Anota que alguien sin acceso escribió al bot. Devuelve (es_la_primera_vez, avisos_en_la_última_hora)."""
+    ahora = int(time.time())
+    with _con() as c:
+        f = c.execute("SELECT id FROM intentos WHERE id = ?", (uid,)).fetchone()
+        if f:
+            c.execute("UPDATE intentos SET ultimo = ?, veces = veces + 1 WHERE id = ?", (ahora, uid))
+            return False, 0
+        c.execute("INSERT INTO intentos (id, nombre, primero, ultimo, veces) VALUES (?, ?, ?, ?, 1)",
+                  (uid, nombre or "", ahora, ahora))
+        n = c.execute("SELECT COUNT(*) n FROM intentos WHERE primero >= ?", (ahora - 3600,)).fetchone()["n"]
+        return True, n
+
+
+def ultimos_intentos(n=10):
+    with _con() as c:
+        return [dict(f) for f in c.execute("SELECT * FROM intentos ORDER BY ultimo DESC LIMIT ?", (n,))]
 
 
 # ---------------------------------------------------------------- códigos de invitación
