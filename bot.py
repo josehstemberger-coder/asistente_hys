@@ -231,9 +231,29 @@ PROMPT_INSPECCION = (
 )
 
 # Temas del menú de Mentalidad. 'directo' = responde enseguida (consulta general); si no, pide el caso primero.
+# Decreto de Mentalidad: texto fijo, sin pasar por la IA. Se envía sin protección (se puede copiar y guardar).
+DECRETO_TITULO = "DECRETO DE MENTALIDAD"
+DECRETO_PARRAFOS = (
+    "Hoy entro a este frente de trabajo con un propósito más grande que yo: proteger la integridad de las personas y "
+    "los recursos. Sé que mi éxito se mide por lo que evito, aunque nadie me lo agradezca, y con eso me alcanza. Hoy, "
+    "mi trabajo garantiza seguridad.",
+    "Mi autoridad no viene del cargo, se construye con hechos. Doy lo mejor de mí en cada situación, estoy cerca, "
+    "estoy presente y soy dueño de mi espacio. Desde ahí transmito tranquilidad y confianza.",
+    "Y cuando el riesgo lo exige, digo “No”. Lo digo con claridad y con fundamentos, sin miedo. Si alguien se enoja "
+    "con quien señala el peligro, entiendo que no es contra mí: es la resistencia que viene con este oficio. La "
+    "atravieso con calma.",
+)
+DECRETO_FRASE = ("“En seguridad, mi éxito es lo que no ocurre; mi autoridad, lo que hago cuando nadie mira; y mi "
+                 "legado, el nombre que dejo en cada firma.”")
+DECRETO_10S = "Hoy, mi trabajo garantiza seguridad.\nActitud, servicio, autoridad. No miro para otro lado."
+TEXTO_DECRETO = (DECRETO_TITULO + "\n\n" + "\n\n".join(DECRETO_PARRAFOS) + "\n\n" + DECRETO_FRASE
+                 + "\n\nVersión de 10 segundos, para el último momento antes de entrar:\n" + DECRETO_10S)
+CIERRE_DECRETO = "Antes de entrar: Hoy, mi trabajo garantiza seguridad. Actitud, servicio, autoridad. No miro para otro lado."
+
 TEMAS = [
     {"label": "Mi jefe me presiona para no frenar una tarea crítica",
      "boton": "Mi jefe me presiona para no frenar",
+     "cierre_decreto": True,
      "enfoque": "la presión de jefes y supervisores en una tarea crítica: hablar el idioma del jefe (2.2a), "
                 "juicio crítico (2.2d), manejo de la presión de los jefes de la guía de Stop Work (2.2f), "
                 "registro por escrito y escalamiento, y las respuestas de poder del Bono 2",
@@ -250,6 +270,7 @@ TEMAS = [
      "ejemplo": "un operario dice que el arnés le molesta y trabaja sin usarlo cuando no lo miro."},
     {"label": "Tengo que hacer un Stop Work y no sé cómo decirlo",
      "boton": "Tengo que hacer un Stop Work",
+     "cierre_decreto": True,
      "enfoque": "la guía de Stop Work (2.2f): control del impulso, la estructura hecho objetivo, riesgo evolutivo y "
                 "acción correctiva, el manejo de la presión de los jefes, las preguntas finales antes del OK, y la "
                 "autoridad formal de parada (1.4)",
@@ -261,6 +282,7 @@ TEMAS = [
      "prompt": PROMPT_MAIL},
     {"label": "Me tengo que calmar antes de una conversación difícil",
      "boton": "Calmarme antes de una conversación difícil",
+     "cierre_decreto": True,
      "enfoque": "la autorregulación antes del conflicto (2.1): observador externo, hablarse en tercera persona, "
                 "anclaje de propósito (la postura corporal tiene su propio tema en el menú)",
      "ejemplo": "tengo que plantearle a la gerencia que se frene una tarea y me pongo muy nervioso."},
@@ -282,6 +304,7 @@ TEMAS = [
      "directo": True},
     {"label": "¿Qué hago bajo presión o durante un conflicto?",
      "boton": "¿Qué hago bajo presión o durante un conflicto?",
+     "cierre_decreto": True,
      "enfoque": "las herramientas del conflicto del Pilar 2: observador externo (2.1a), hablar el idioma del jefe "
                 "(2.2a), alianzas (2.2b), proteger la salud mental con hechos y escalamiento (2.2c), juicio crítico "
                 "(2.2d) y Stop Work (2.2f), ordenadas como un paso a paso corto",
@@ -307,7 +330,8 @@ TEMAS = [
 
 
 def teclado_temas():
-    filas = [[InlineKeyboardButton(t["boton"], callback_data="tema:%d" % i)] for i, t in enumerate(TEMAS)]
+    filas = [[InlineKeyboardButton("📜 Mi decreto de mentalidad", callback_data="tema:decreto")]]
+    filas += [[InlineKeyboardButton(t["boton"], callback_data="tema:%d" % i)] for i, t in enumerate(TEMAS)]
     filas.append([InlineKeyboardButton("Escribir mi propia situación", callback_data="tema:libre")])
     return InlineKeyboardMarkup(filas)
 
@@ -624,12 +648,17 @@ def _protegido(ctx, uid=None):
 async def responder_largo(msg, texto, ctx=None):
     """Envía la respuesta. Con ctx (modo, tema, pregunta) deja registrada la respuesta y agrega los botones de
     opinión en el último mensaje. Si la base de datos falla, la respuesta sale igual, sin botones."""
+    texto_original = texto
+    if ctx and ctx.get("modo") == "mentalidad":
+        tema = ctx.get("tema")
+        if tema is not None and 0 <= tema < len(TEMAS) and TEMAS[tema].get("cierre_decreto"):
+            texto = texto.rstrip() + "\n\n" + CIERRE_DECRETO
     trozos = partir_mensaje(texto)
     teclado = None
     if ctx:
         try:
             rid = almacen.registrar_respuesta(msg.chat.id, ctx.get("modo"), ctx.get("tema"), ctx.get("pregunta"),
-                                              texto, GUARDAR_TEXTOS)
+                                              texto_original, GUARDAR_TEXTOS)
             teclado = teclado_voto(rid)
         except Exception as e:
             log.warning("No pude registrar la respuesta: %s", e)
@@ -720,8 +749,9 @@ INSTRUCTIVO = (
     "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia. "
     "Tengo cuatro herramientas:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
-    "pares una tarea, un operario que se resiste a usar EPP, una discusión, alguien que te falta el respeto, la inspección que te invalida, etc.) y te digo cómo encararla, con frases para "
-    "usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo.\n\n"
+    "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
+    "usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo. En esa lista también "
+    "está tu Decreto de Mentalidad, para leerlo antes de entrar a trabajar.\n\n"
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
     "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el "
     "archivo, mandalo sin comentarios. Si querés que desarrolle solo algunos puntos o temas (un "
@@ -860,7 +890,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(texto)
             await _avisar_intento(update, context)
             return
-        await update.message.reply_text("¡Listo! Tu acceso quedó activado.")
+        await update.message.reply_text("¡Listo! Tu acceso quedó activado. Antes de empezar, este es el marco de "
+                                        "mentalidad con el que trabaja este asistente:")
+        await update.message.reply_text(TEXTO_DECRETO)
         if creador:
             try:
                 await context.bot.send_message(creador, "%s (ID %d) activó el código %s." % (nombre or "Alguien", u.id, codigo.upper()))
@@ -907,6 +939,9 @@ async def elegir_tema(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await q.answer()
     clave = (q.data or "").split(":", 1)[-1]
     context.user_data["modo"] = "mentalidad"
+    if clave == "decreto":
+        await q.message.reply_text(TEXTO_DECRETO)
+        return
     if clave == "libre":
         context.user_data.pop("tema", None)
         await q.message.reply_text("Perfecto. Escribime tu situación concreta (quién, qué pasó y qué necesitás) "
