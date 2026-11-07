@@ -234,13 +234,13 @@ PROMPT_INSPECCION = (
 # Decreto de Mentalidad: texto fijo, sin pasar por la IA. Se envía sin protección (se puede copiar y guardar).
 DECRETO_TITULO = "DECRETO DE MENTALIDAD"
 DECRETO_PARRAFOS = (
-    "Hoy entro a este frente de trabajo con un propósito más grande que yo: proteger la integridad de las personas y "
-    "los recursos. Sé que mi éxito se mide por lo que evito, aunque nadie me lo agradezca, y con eso me alcanza. Hoy, "
+    "Hoy entro a la obra con un propósito más grande que yo: proteger la integridad de las personas y "
+    "los recursos de la empresa. Sé que mi éxito se mide por lo que evito, aunque nadie me lo agradezca, y con eso me alcanza. Hoy, "
     "mi trabajo garantiza seguridad.",
     "Mi autoridad no viene del cargo, se construye con hechos. Doy lo mejor de mí en cada situación, estoy cerca, "
     "estoy presente y soy dueño de mi espacio. Desde ahí transmito tranquilidad y confianza.",
     "Y cuando el riesgo lo exige, digo “No”. Lo digo con claridad y con fundamentos, sin miedo. Si alguien se enoja "
-    "con quien señala el peligro, entiendo que no es contra mí: es la resistencia que viene con este oficio. La "
+    "cuando señalo un peligro, entiendo que no es contra mí: es la resistencia que viene con este oficio. Y la "
     "atravieso con calma.",
 )
 DECRETO_FRASE = ("“En seguridad, mi éxito es lo que no ocurre; mi autoridad, lo que hago cuando nadie mira; y mi "
