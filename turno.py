@@ -7,7 +7,9 @@ import datetime
 
 DIAS_TURNO = 14
 DIAS_DESCANSO = 14
-META = 5
+META = 5  # mínimo por ciclo de cada KPI que tiene meta
+SIN_META = {3}  # Stop works: se cuentan los que se hagan (1 o más), sin meta ni ritmo
+TOTAL_META = META * (6 - len(SIN_META))  # 25
 TOPE_DIARIO = 10  # por KPI y por día: solo evita toques accidentales
 
 # (número, nombre completo, nombre corto para el botón, emoji)
@@ -45,16 +47,16 @@ def esperado(dia):
 
 def atrasados(totales, dia):
     esp = esperado(dia)
-    return [k for k in NOMBRE if totales.get(k, 0) < esp]
+    return [k for k in NOMBRE if k not in SIN_META and totales.get(k, 0) < esp]
 
 
 def puntaje(totales):
-    """Cumplimiento del ciclo: suma de min(total, 5) por KPI (máximo 30). Lo extra no tapa a otro KPI."""
-    return sum(min(totales.get(k, 0), META) for k in NOMBRE)
+    """Cumplimiento del ciclo: suma de min(total, 5) por KPI con meta (máximo 25). Lo extra no tapa a otro KPI."""
+    return sum(min(totales.get(k, 0), META) for k in NOMBRE if k not in SIN_META)
 
 
 def extras(totales):
-    return sum(max(totales.get(k, 0) - META, 0) for k in NOMBRE)
+    return sum(max(totales.get(k, 0) - META, 0) for k in NOMBRE if k not in SIN_META)
 
 
 def racha(dias_con_carga, hoy, inicio):
@@ -82,7 +84,9 @@ def texto_panel(dia, totales, del_dia, racha_n, etiqueta=""):
     atr = set(atrasados(totales, dia))
     for k, nombre, _c, emoji in KPIS:
         t = totales.get(k, 0)
-        if t >= META:
+        if k in SIN_META:
+            estado = "%d" % t
+        elif t >= META:
             estado = "%d/%d ✔" % (t, META) + (" (+%d)" % (t - META) if t > META else "")
         else:
             estado = "%d/%d" % (t, META) + (" ⚠" if k in atr else "")
@@ -98,10 +102,13 @@ def texto_panel(dia, totales, del_dia, racha_n, etiqueta=""):
 
 def texto_cierre(totales, puntaje_anterior, mejor, n_ciclo):
     p = puntaje(totales)
-    lineas = ["Cerraste tu ciclo %d: cumpliste %d de %d." % (n_ciclo, p, META * len(NOMBRE))]
+    lineas = ["Cerraste tu ciclo %d: cumpliste %d de %d." % (n_ciclo, p, TOTAL_META)]
     for k, nombre, _c, emoji in KPIS:
         t = totales.get(k, 0)
-        lineas.append("%s %s: %d/%d" % (emoji, nombre, t, META) + (" ✔" if t >= META else ""))
+        if k in SIN_META:
+            lineas.append("%s %s: %d" % (emoji, nombre, t))
+        else:
+            lineas.append("%s %s: %d/%d" % (emoji, nombre, t, META) + (" ✔" if t >= META else ""))
     if extras(totales):
         lineas.append("Superaste la meta en %d." % extras(totales))
     if puntaje_anterior is not None:
@@ -116,6 +123,6 @@ def texto_cierre(totales, puntaje_anterior, mejor, n_ciclo):
         lineas.append("Es tu mejor ciclo hasta ahora.")
     elif mejor is not None and n_ciclo > 1:
         lineas.append("Tu mejor ciclo fue de %d." % mejor)
-    if p == META * len(NOMBRE):
-        lineas.append("Ciclo completo: 30 de 30.")
+    if p == TOTAL_META:
+        lineas.append("Ciclo completo: %d de %d." % (TOTAL_META, TOTAL_META))
     return "\n".join(lineas)
