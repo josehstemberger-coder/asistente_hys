@@ -841,34 +841,15 @@ async def mostrar_menu(msg):
 
 
 INSTRUCTIVO = (
-    "Hola, soy el Asistente de Seguridad e Higiene. Ayudo a los Técnicos a gestionar y encontrar soluciones constructivas a las "
-    "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia. "
-    "Tengo seis herramientas:\n\n"
-    "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
-    "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
-    "usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo. En esa lista también "
-    "está el Decreto del Técnico de HYS, para leerlo antes de entrar a trabajar.\n\n"
-    "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos "
-    "para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el "
-    "archivo, mandalo sin comentarios. Si querés que desarrolle solo algunos puntos o temas (un "
-    "procedimiento largo, por ejemplo), escribilos en el pie del archivo: 'solo los puntos 4, 5 y 6', "
-    "'solo bloqueo y etiquetado'. Para eso tenés que conocer el contenido del archivo. En el pie también "
-    "podés indicar a quién va dirigida ('para personal de soldadura').\n\n"
-    "3. Abordaje de conducta insegura. Contame qué viste (tarea, qué estaba haciendo mal, qué EPP no usaba), y " 
-    "te armo el guion para abordarlo.\n\n"
+    "Hola, soy el Asistente de Seguridad e Higiene. Ayudo a los Técnicos a gestionar y encontrar soluciones constructivas a las dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia. Tengo seis herramientas:\n\n"
+    "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que pares una tarea, un operario que no usa un EPP, una discusión, alguien que te falta el respeto, la inspección de HYS que te invalida, etc.) y te digo cómo encararla, con frases para usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo. En esa lista también está el Decreto del Técnico de HYS, para leerlo antes de entrar a trabajar.\n\n"
+    "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el archivo, mandalo sin comentarios. Si querés que desarrolle solo algunos puntos o temas (un procedimiento largo, por ejemplo), escribilos en el pie del archivo. Ejemplo: 'solo los puntos 4, 5 y 6', 'solo bloqueo y etiquetado'. Para eso tenés que conocer el contenido del archivo. En el pie también podés indicar a quién va dirigida. Ejemplo: ('para personal de soldadura').\n\n"
+    "3. Abordaje de conducta insegura. Contame qué viste (tarea crítica, procedimiento inadecuado, qué EPP no usaba, etc.), y te armo el guion para abordarlo.\n\n"
     "4. Abordaje de conducta segura. Lo mismo, pero para reconocer y reforzar algo que alguien hizo bien.\n\n"
-    "5. Qué decir en una conversación difícil. Elegís una situación (por ejemplo, que cuestionen tu autoridad en público, o un "
-    "comentario despectivo) o una conducta (grita, desautoriza, insiste, etc.), o escribís la tuya, y te digo qué "
-    "decir, con frases listas para usar. Si me falta un dato importante, te lo pregunto.\n\n"
-    "6. Mi turno. Llevás tus 6 KPI del turno (documentación, riesgos críticos, stop works, abordajes e "
-    "inspecciones): un mínimo de 5 de cada uno por ciclo de 14 días. Cada día cargás lo que hiciste en obra y te "
-    "recuerdo los que van atrasados. Competís contra tu propio ciclo anterior. Con /silenciar pausás el recordatorio.\n\n"
-    "Cómo sacarle el jugo: sé concreto. Cuanto más detalle me des (tarea, lugar, qué pasó, cómo reaccionó la "
-    "persona), mejor sale la respuesta. No mandes datos personales sensibles ni documentos confidenciales de "
-    "tu empresa.\n\n"
-    "Importante: si lo que ves es un riesgo grave o inminente, primero frená la tarea (stop work) y comunicá al supervisor; "
-    "el guion o la charla vienen después. Soy una ayuda: no reemplazo tu criterio profesional, la evaluación "
-    "de riesgos de tu lugar ni la normativa vigente ni los procedimientos de tu empresa.\n\n"
+    "5. Qué decir en una conversación difícil. Elegís una situación (por ejemplo, que cuestionen tu autoridad en público, o un comentario despectivo) o una conducta (grita, desautoriza, insiste, etc.), o escribís la tuya, y te digo qué decir, con frases listas para usar. Si me falta un dato importante, te lo pregunto.\n\n"
+    "6. Mi turno. Llevás tus 6 KPI del turno (documentación, riesgos críticos, stop works, abordajes e inspecciones): un mínimo de 5 de cada uno por ciclo de 14 días, salvo stop works, que se cuentan sin meta (uno o más). Cada día cargás lo que hiciste en obra y te recuerdo los que van atrasados. Competís contra tu propio ciclo anterior. Con /silenciar pausás el recordatorio.\n\n"
+    "Cómo sacarle el jugo: sé concreto. Cuanto más detalle me des (tarea, lugar, qué pasó, cómo reaccionó la persona), mejor sale la respuesta. No mandes datos personales sensibles ni documentos confidenciales de tu empresa.\n\n"
+    "Importante: si lo que ves es un riesgo grave o inminente, primero frená la tarea (stop work) y comunicá al supervisor; el guion o la charla vienen después. Soy una ayuda: no reemplazo tu criterio profesional, la evaluación de riesgos de tu lugar ni la normativa vigente ni los procedimientos de tu empresa.\n\n"
     "Comandos: /menu para cambiar de opción, /ayuda para ver este instructivo de nuevo."
 )
 
@@ -1703,7 +1684,7 @@ HORAS_RECORDATORIO = (17, 18, 19, 20, 21, 22)
 TEXTO_TURNO_NUEVO = (
     "Mi turno. Acá llevás tus 6 KPI del turno: documentación, riesgos críticos, stop works, abordajes de "
     "conductas inseguras y seguras, e inspecciones. La meta es un mínimo de 5 de cada uno por ciclo de 14 días "
-    "(30 en total), y podés hacer más. Cada día cargás lo que hiciste en obra y competís contra tu propio ciclo "
+    "(25 en total), y podés hacer más. Los stop works no tienen meta: se cuentan los que hagas, uno o más. Cada día cargás lo que hiciste en obra y competís contra tu propio ciclo "
     "anterior.\n\nCuando empieces tu turno, tocá el botón."
 )
 TEXTO_TURNO_AVISO = (
@@ -1730,7 +1711,8 @@ def _kb_panel(totales, del_dia, off):
     for k, _n, corto, emoji in turno.KPIS:
         filas.append([
             InlineKeyboardButton("➖", callback_data="turno:-:%d" % k),
-            InlineKeyboardButton("%s %s %d/%d" % (emoji, corto, totales.get(k, 0), turno.META),
+            InlineKeyboardButton(("%s %s %d" % (emoji, corto, totales.get(k, 0))) if k in turno.SIN_META
+                                 else "%s %s %d/%d" % (emoji, corto, totales.get(k, 0), turno.META),
                                  callback_data="turno:i:%d" % k),
             InlineKeyboardButton("➕", callback_data="turno:+:%d" % k),
         ])
@@ -1813,8 +1795,8 @@ async def elegir_turno(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if ult and turno.activo(hoy, ult[1]):
                 t = almacen.kpi_totales(uid, ult[0]).get(k, 0)
                 d = almacen.kpi_del_dia(uid, ult[0], hoy - off).get(k, 0)
-                await q.answer("%s: %d en el ciclo (%d ese día). Mínimo: %d." % (turno.NOMBRE[k], t, d, turno.META),
-                               show_alert=True)
+                meta = "Sin meta: 1 o más." if k in turno.SIN_META else "Mínimo: %d." % turno.META
+                await q.answer("%s: %d en el ciclo (%d ese día). %s" % (turno.NOMBRE[k], t, d, meta), show_alert=True)
             else:
                 await q.answer()
             return
