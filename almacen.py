@@ -49,6 +49,26 @@ CREATE TABLE IF NOT EXISTS respuestas (
     motivo INTEGER
 );
 CREATE INDEX IF NOT EXISTS ix_respuestas_ts ON respuestas (ts);
+CREATE TABLE IF NOT EXISTS ciclos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uid INTEGER,
+    inicio INTEGER
+);
+CREATE INDEX IF NOT EXISTS ix_ciclos_uid ON ciclos (uid, inicio);
+CREATE TABLE IF NOT EXISTS kpi_dia (
+    uid INTEGER,
+    ciclo INTEGER,
+    dia INTEGER,
+    kpi INTEGER,
+    cant INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (uid, ciclo, dia, kpi)
+);
+CREATE TABLE IF NOT EXISTS turno_ajustes (
+    uid INTEGER PRIMARY KEY,
+    hora INTEGER NOT NULL DEFAULT 19,
+    silenciado INTEGER NOT NULL DEFAULT 0,
+    aviso INTEGER
+);
 CREATE TABLE IF NOT EXISTS intentos (
     id INTEGER PRIMARY KEY,
     nombre TEXT,
@@ -255,3 +275,107 @@ def consultas_hoy(uid):
     inicio = ((ahora - 10800) // 86400) * 86400 + 10800
     with _con() as c:
         return c.execute("SELECT COUNT(*) n FROM respuestas WHERE uid = ? AND ts >= ?", (uid, inicio)).fetchone()["n"]
+
+
+# ---------------------------------------------------------------- Mi turno (ciclos y KPI)
+
+def hoy_ar():
+    """Día de hoy como entero (días desde 1970, hora de Argentina, UTC-3)."""
+    return int((time.time() - 10800) // 86400)
+
+
+def hora_ar():
+    return int(((time.time() - 10800) % 86400) // 3600)
+
+
+def ciclo_iniciar(uid, inicio):
+    with _con() as c:
+        return c.execute("INSERT INTO ciclos (uid, inicio) VALUES (?, ?)", (uid, int(inicio))).lastrowid
+
+
+def ciclo_ultimo(uid):
+    """(id, inicio) del ciclo más reciente, o None."""
+    with _con() as c:
+        f = c.execute("SELECT id, inicio FROM ciclos WHERE uid = ? ORDER BY inicio DESC, id DESC LIMIT 1", (uid,)).fetchone()
+    return (f["id"], f["inicio"]) if f else None
+
+
+def ciclos_de(uid):
+    """[(id, inicio)] del más viejo al más nuevo."""
+    with _con() as c:
+        return [(f["id"], f["inicio"]) for f in c.execute(
+            "SELECT id, inicio FROM ciclos WHERE uid = ? ORDER BY inicio, id", (uid,))]
+
+
+def kpi_cambiar(uid, ciclo, dia, kpi, delta, tope=10):
+    """Suma o resta en un KPI de un día (entre 0 y el tope). Devuelve la cantidad que quedó."""
+    with _con() as c:
+        c.execute(
+            "INSERT INTO kpi_dia (uid, ciclo, dia, kpi, cant) VALUES (?, ?, ?, ?, MAX(0, MIN(?, ?))) "
+            "ON CONFLICT(uid, ciclo, dia, kpi) DO UPDATE SET cant = MAX(0, MIN(?, cant + ?))",
+            (uid, ciclo, int(dia), int(kpi), tope, delta, tope, delta))
+        return c.execute("SELECT cant FROM kpi_dia WHERE uid = ? AND ciclo = ? AND dia = ? AND kpi = ?",
+                         (uid, ciclo, int(dia), int(kpi))).fetchone()["cant"]
+
+
+def kpi_del_dia(uid, ciclo, dia):
+    with _con() as c:
+        return {f["kpi"]: f["cant"] for f in c.execute(
+            "SELECT kpi, cant FROM kpi_dia WHERE uid = ? AND ciclo = ? AND dia = ?", (uid, ciclo, int(dia)))}
+
+
+def kpi_totales(uid, ciclo):
+    with _con() as c:
+        return {f["kpi"]: f["t"] for f in c.execute(
+            "SELECT kpi, SUM(cant) t FROM kpi_dia WHERE uid = ? AND ciclo = ? GROUP BY kpi", (uid, ciclo))}
+
+
+def dias_con_carga(uid, ciclo):
+    with _con() as c:
+        return {f["dia"] for f in c.execute(
+            "SELECT dia FROM kpi_dia WHERE uid = ? AND ciclo = ? GROUP BY dia HAVING SUM(cant) > 0", (uid, ciclo))}
+
+
+def ajustes_get(uid):
+    """(hora del recordatorio, silenciado). Por defecto 19:00 y activado."""
+    with _con() as c:
+        f = c.execute("SELECT hora, silenciado FROM turno_ajustes WHERE uid = ?", (uid,)).fetchone()
+    return (f["hora"], bool(f["silenciado"])) if f else (19, False)
+
+
+def ajustes_set(uid, hora=None, silenciado=None):
+    h, s = ajustes_get(uid)
+    h = h if hora is None else int(hora)
+    s = s if silenciado is None else bool(silenciado)
+    with _con() as c:
+        c.execute(
+            "INSERT INTO turno_ajustes (uid, hora, silenciado) VALUES (?, ?, ?) "
+            "ON CONFLICT(uid) DO UPDATE SET hora = excluded.hora, silenciado = excluded.silenciado",
+            (uid, h, int(s)))
+
+
+def avisos_pendientes(hoy, hora):
+    """[(uid, ciclo, inicio)] de quienes tienen recordatorio a esta hora, no lo silenciaron y no lo recibieron hoy.
+    Mira solo el ciclo más reciente de cada persona."""
+    with _con() as c:
+        filas = c.execute(
+            "SELECT c.uid uid, c.id ciclo, c.inicio inicio FROM ciclos c "
+            "LEFT JOIN turno_ajustes a ON a.uid = c.uid "
+            "WHERE c.inicio = (SELECT MAX(inicio) FROM ciclos WHERE uid = c.uid) "
+            "AND COALESCE(a.silenciado, 0) = 0 AND COALESCE(a.hora, 19) = ? "
+            "AND (a.aviso IS NULL OR a.aviso != ?)", (int(hora), int(hoy))).fetchall()
+    return [(f["uid"], f["ciclo"], f["inicio"]) for f in filas]
+
+
+def aviso_marcar(uid, hoy):
+    with _con() as c:
+        c.execute(
+            "INSERT INTO turno_ajustes (uid, aviso) VALUES (?, ?) "
+            "ON CONFLICT(uid) DO UPDATE SET aviso = excluded.aviso", (uid, int(hoy)))
+
+
+def borrar_turno(uid):
+    with _con() as c:
+        c.execute("DELETE FROM kpi_dia WHERE uid = ?", (uid,))
+        c.execute("DELETE FROM ciclos WHERE uid = ?", (uid,))
+        c.execute("DELETE FROM turno_ajustes WHERE uid = ?", (uid,))
