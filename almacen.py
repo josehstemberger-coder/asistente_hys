@@ -247,3 +247,11 @@ def ultimos_negativos(n=10):
     with _con() as c:
         return [dict(f) for f in c.execute(
             "SELECT * FROM respuestas WHERE voto = -1 ORDER BY ts DESC LIMIT ?", (n,))]
+
+
+def consultas_hoy(uid):
+    """Cantidad de respuestas que recibió esta persona hoy (el día cambia a las 00:00 de Argentina, UTC-3)."""
+    ahora = int(time.time())
+    inicio = ((ahora - 10800) // 86400) * 86400 + 10800
+    with _con() as c:
+        return c.execute("SELECT COUNT(*) n FROM respuestas WHERE uid = ? AND ts >= ?", (uid, inicio)).fetchone()["n"]
