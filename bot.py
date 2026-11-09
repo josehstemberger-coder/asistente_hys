@@ -10,6 +10,7 @@ import logging
 
 import requests
 import almacen
+import turno
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -593,6 +594,11 @@ MODOS = {
             "Si lo que vivís es un maltrato real o sostenido, lo que corresponde es llevarlo a RRHH."
         ),
     },
+    "turno": {
+        "boton": "Mi turno (KPI del día)",
+        "contexto": "",
+        "bienvenida": "Mi turno.",
+    },
 }
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -837,7 +843,7 @@ async def mostrar_menu(msg):
 INSTRUCTIVO = (
     "Hola, soy el Asistente de Seguridad e Higiene. Ayudo a los Técnicos a gestionar y encontrar soluciones constructivas a las "
     "dificultades y conflictos diarios del trabajo, que provocan ansiedad, frustración, culpa, desgaste e impotencia. "
-    "Tengo cinco herramientas:\n\n"
+    "Tengo seis herramientas:\n\n"
     "1. Mentalidad y habilidades. Contame una situación de conflicto o presión (un jefe que no quiere que "
     "pares una tarea, un operario que se resiste, una discusión, alguien que te falta el respeto, etc.) y te digo cómo encararla, con frases para "
     "usar. Podés elegir un tema de la lista o escribir tu caso; no hace falta archivo. En esa lista también "
@@ -854,6 +860,9 @@ INSTRUCTIVO = (
     "5. Qué decir en una conversación difícil. Elegís una situación (por ejemplo, que cuestionen tu autoridad en público, o un "
     "comentario despectivo) o una conducta (grita, desautoriza, insiste, etc.), o escribís la tuya, y te digo qué "
     "decir, con frases listas para usar. Si me falta un dato importante, te lo pregunto.\n\n"
+    "6. Mi turno. Llevás tus 6 KPI del turno (documentación, riesgos críticos, stop works, abordajes e "
+    "inspecciones): un mínimo de 5 de cada uno por ciclo de 14 días. Cada día cargás lo que hiciste en obra y te "
+    "recuerdo los que van atrasados. Competís contra tu propio ciclo anterior. Con /silenciar pausás el recordatorio.\n\n"
     "Cómo sacarle el jugo: sé concreto. Cuanto más detalle me des (tarea, lugar, qué pasó, cómo reaccionó la "
     "persona), mejor sale la respuesta. No mandes datos personales sensibles ni documentos confidenciales de "
     "tu empresa.\n\n"
@@ -1026,6 +1035,14 @@ async def elegir_modo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(MODOS[modo]["bienvenida"] + "\n\nPara cambiar de opción, mandá /menu.",
                                    reply_markup=teclado_temas())
         return
+    if modo == "turno":
+        context.user_data["turno_off"] = 0
+        try:
+            await _mostrar_panel(q.message, q.message.chat.id)
+        except Exception as e:
+            log.warning("Falló Mi turno: %s", e)
+            await q.message.reply_text("Ahora no pude acceder a tus datos de Mi turno. Probá de nuevo en un ratito.")
+        return
     if modo == "simulador":
         await q.message.reply_text(MODOS[modo]["bienvenida"] + "\n\nPara cambiar de opción, mandá /menu.",
                                    reply_markup=teclado_sim_menu())
@@ -1148,6 +1165,10 @@ async def manejar_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await mostrar_menu(msg)
         return
     texto = msg.text.strip()
+    if modo == "turno":
+        await msg.reply_text("En «Mi turno» usás los botones. Mandá /turno para abrir tu panel, o /menu para cambiar "
+                             "de opción.")
+        return
     if not await dentro_del_limite(msg, msg.chat.id):
         return
 
@@ -1246,6 +1267,10 @@ async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     modo = context.user_data.get("modo")
     if not modo:
         await mostrar_menu(msg)
+        return
+    if modo == "turno":
+        await msg.reply_text("En «Mi turno» usás los botones. Mandá /turno para abrir tu panel, o /menu para cambiar "
+                             "de opción.")
         return
     if modo in ("mentalidad", "simulador"):
         await msg.reply_text("En este modo trabajo con texto: contame la situación escrita. "
@@ -1671,6 +1696,281 @@ async def elegir_sim(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ----------------------------------------------------------------------------------------------
+# Mi turno: KPI del día, ciclo de 14 días (roster 14 x 14) y recordatorio diario. Sin IA.
+# ----------------------------------------------------------------------------------------------
+HORAS_RECORDATORIO = (17, 18, 19, 20, 21, 22)
+
+TEXTO_TURNO_NUEVO = (
+    "Mi turno. Acá llevás tus 6 KPI del turno: documentación, riesgos críticos, stop works, abordajes de "
+    "conductas inseguras y seguras, e inspecciones. La meta es un mínimo de 5 de cada uno por ciclo de 14 días "
+    "(30 en total), y podés hacer más. Cada día cargás lo que hiciste en obra y competís contra tu propio ciclo "
+    "anterior.\n\nCuando empieces tu turno, tocá el botón."
+)
+TEXTO_TURNO_AVISO = (
+    "Listo, arrancó tu turno: día %d de 14.\n\n"
+    "Cada día, cargá lo que hiciste con los botones ➕ y ➖. Te recuerdo a las %02d:00 qué KPI vas atrasado, solo "
+    "durante tu turno y tus días de descanso. Para cambiar la hora o pausar el recordatorio, tocá «⏰ "
+    "Recordatorio» o mandá /silenciar. Guardo solo cantidades y fechas (nunca textos) y solo vos las ves; "
+    "podés borrarlas cuando quieras desde «⏰ Recordatorio»."
+)
+
+
+def _estado_turno(uid, off=0):
+    hoy = almacen.hoy_ar()
+    ult = almacen.ciclo_ultimo(uid)
+    return hoy, ult
+
+
+def _kb_inicio(texto="Empecé mi turno"):
+    return InlineKeyboardMarkup([[InlineKeyboardButton(texto, callback_data="turno:ini")]])
+
+
+def _kb_panel(totales, del_dia, off):
+    filas = []
+    for k, _n, corto, emoji in turno.KPIS:
+        filas.append([
+            InlineKeyboardButton("➖", callback_data="turno:-:%d" % k),
+            InlineKeyboardButton("%s %s %d/%d" % (emoji, corto, totales.get(k, 0), turno.META),
+                                 callback_data="turno:i:%d" % k),
+            InlineKeyboardButton("➕", callback_data="turno:+:%d" % k),
+        ])
+    filas.append([InlineKeyboardButton("📅 Volver a hoy" if off else "📅 Cargar ayer",
+                                       callback_data="turno:hoy" if off else "turno:ayer")])
+    filas.append([InlineKeyboardButton("⏰ Recordatorio", callback_data="turno:aj")])
+    return InlineKeyboardMarkup(filas)
+
+
+def _panel(uid, off=0):
+    """Devuelve (texto, teclado) del panel de Mi turno para esta persona."""
+    hoy, ult = _estado_turno(uid)
+    if not ult:
+        return TEXTO_TURNO_NUEVO, _kb_inicio()
+    ciclo, inicio = ult
+    if turno.activo(hoy, inicio):
+        dia_carga = hoy - off
+        if dia_carga < inicio:
+            off, dia_carga = 0, hoy
+        totales = almacen.kpi_totales(uid, ciclo)
+        del_dia = almacen.kpi_del_dia(uid, ciclo, dia_carga)
+        racha = turno.racha(almacen.dias_con_carga(uid, ciclo), hoy, inicio)
+        etiqueta = "Cargando el día de ayer (%s)." % turno.fecha(dia_carga) if off else ""
+        texto = turno.texto_panel(turno.dia_ciclo(hoy, inicio), totales, del_dia, racha, etiqueta)
+        return texto, _kb_panel(totales, del_dia, off)
+    # el ciclo terminó: cierre y descanso
+    ciclos = almacen.ciclos_de(uid)
+    puntajes = [turno.puntaje(almacen.kpi_totales(uid, c)) for c, _i in ciclos]
+    n = len(ciclos)
+    anterior = puntajes[-2] if n >= 2 else None
+    mejor = max(puntajes[:-1]) if n >= 2 else None
+    texto = turno.texto_cierre(almacen.kpi_totales(uid, ciclo), anterior, mejor, n)
+    vuelta = inicio + turno.DIAS_TURNO + turno.DIAS_DESCANSO
+    if hoy < vuelta:
+        texto += "\n\nEstás de descanso. Volvés al turno el %s." % turno.fecha(vuelta)
+    else:
+        texto += "\n\nYa podés empezar tu próximo turno."
+    return texto, _kb_inicio()
+
+
+async def _mostrar_panel(msg, uid, off=0):
+    texto, kb = _panel(uid, off)
+    await msg.reply_text(texto, reply_markup=kb)
+
+
+async def _refrescar(q, uid, off=0):
+    texto, kb = _panel(uid, off)
+    try:
+        await q.edit_message_text(texto, reply_markup=kb)
+    except Exception as e:  # por ejemplo, «el mensaje no cambió»
+        log.debug("No se pudo editar el panel: %s", e)
+
+
+def _kb_ajustes(uid):
+    hora, sil = almacen.ajustes_get(uid)
+    filas = [[InlineKeyboardButton(("• " if h == hora else "") + "%02d:00" % h, callback_data="turno:h:%d" % h)
+              for h in HORAS_RECORDATORIO[:3]],
+             [InlineKeyboardButton(("• " if h == hora else "") + "%02d:00" % h, callback_data="turno:h:%d" % h)
+              for h in HORAS_RECORDATORIO[3:]],
+             [InlineKeyboardButton("🔔 Activar recordatorio" if sil else "🔕 Pausar recordatorio",
+                                   callback_data="turno:act" if sil else "turno:sil")],
+             [InlineKeyboardButton("🗑 Borrar mis datos de turno", callback_data="turno:borrar")],
+             [InlineKeyboardButton("⬅ Volver", callback_data="turno:open")]]
+    return InlineKeyboardMarkup(filas), hora, sil
+
+
+@requiere_acceso
+async def elegir_turno(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    partes = (q.data or "").split(":")
+    accion = partes[1] if len(partes) > 1 else ""
+    dato = partes[2] if len(partes) > 2 else ""
+    uid = q.message.chat.id
+    context.user_data["modo"] = "turno"
+    off = int(context.user_data.get("turno_off", 0))
+    try:
+        if accion == "i" and dato.isdigit() and int(dato) in turno.NOMBRE:
+            k = int(dato)
+            hoy, ult = _estado_turno(uid)
+            if ult and turno.activo(hoy, ult[1]):
+                t = almacen.kpi_totales(uid, ult[0]).get(k, 0)
+                d = almacen.kpi_del_dia(uid, ult[0], hoy - off).get(k, 0)
+                await q.answer("%s: %d en el ciclo (%d ese día). Mínimo: %d." % (turno.NOMBRE[k], t, d, turno.META),
+                               show_alert=True)
+            else:
+                await q.answer()
+            return
+        await q.answer()
+        if accion in ("+", "-") and dato.isdigit() and int(dato) in turno.NOMBRE:
+            hoy, ult = _estado_turno(uid)
+            if not ult or not turno.activo(hoy, ult[1]):
+                await _refrescar(q, uid)
+                return
+            almacen.kpi_cambiar(uid, ult[0], hoy - off, int(dato), 1 if accion == "+" else -1, turno.TOPE_DIARIO)
+            await _refrescar(q, uid, off)
+        elif accion in ("ayer", "hoy"):
+            off = 1 if accion == "ayer" else 0
+            context.user_data["turno_off"] = off
+            await _refrescar(q, uid, off)
+        elif accion == "open":
+            context.user_data["turno_off"] = 0
+            await _refrescar(q, uid, 0)
+        elif accion == "ini" and not dato:
+            hoy, ult = _estado_turno(uid)
+            if ult and turno.activo(hoy, ult[1]):
+                await q.message.reply_text("Ya tenés un turno en curso (día %d de 14)." % turno.dia_ciclo(hoy, ult[1]))
+                return
+            kb = InlineKeyboardMarkup([
+                [InlineKeyboardButton("Hoy", callback_data="turno:ini:0")],
+                [InlineKeyboardButton("Hace 1 día", callback_data="turno:ini:1"),
+                 InlineKeyboardButton("Hace 2 días", callback_data="turno:ini:2"),
+                 InlineKeyboardButton("Hace 3 días", callback_data="turno:ini:3")]])
+            await q.message.reply_text("¿Cuándo empezaste tu turno?", reply_markup=kb)
+        elif accion == "ini" and dato in ("0", "1", "2", "3"):
+            hoy, ult = _estado_turno(uid)
+            if ult and turno.activo(hoy, ult[1]):
+                await q.message.reply_text("Ya tenés un turno en curso (día %d de 14)." % turno.dia_ciclo(hoy, ult[1]))
+                return
+            inicio = hoy - int(dato)
+            almacen.ciclo_iniciar(uid, inicio)
+            context.user_data["turno_off"] = 0
+            try:
+                await q.edit_message_reply_markup(reply_markup=None)
+            except Exception:
+                pass
+            hora, _s = almacen.ajustes_get(uid)
+            await q.message.reply_text(TEXTO_TURNO_AVISO % (turno.dia_ciclo(hoy, inicio), hora))
+            await _mostrar_panel(q.message, uid)
+        elif accion == "aj":
+            kb, hora, sil = _kb_ajustes(uid)
+            texto = "Recordatorio diario a las %02d:00 (%s). Elegí la hora o pausalo." % (
+                hora, "pausado" if sil else "activado")
+            try:
+                await q.edit_message_text(texto, reply_markup=kb)
+            except Exception as e:
+                log.debug("No se pudo editar: %s", e)
+        elif accion == "h" and dato.isdigit() and int(dato) in HORAS_RECORDATORIO:
+            almacen.ajustes_set(uid, hora=int(dato))
+            kb, hora, sil = _kb_ajustes(uid)
+            try:
+                await q.edit_message_text("Listo: te recuerdo a las %02d:00." % hora, reply_markup=kb)
+            except Exception as e:
+                log.debug("No se pudo editar: %s", e)
+        elif accion in ("sil", "act"):
+            almacen.ajustes_set(uid, silenciado=(accion == "sil"))
+            kb, hora, sil = _kb_ajustes(uid)
+            try:
+                await q.edit_message_text("Recordatorio %s." % ("pausado" if sil else "activado a las %02d:00" % hora),
+                                          reply_markup=kb)
+            except Exception as e:
+                log.debug("No se pudo editar: %s", e)
+        elif accion == "borrar":
+            kb = InlineKeyboardMarkup([[InlineKeyboardButton("Sí, borrar todo", callback_data="turno:borrar_si"),
+                                        InlineKeyboardButton("No", callback_data="turno:aj")]])
+            try:
+                await q.edit_message_text("Se borran tus ciclos, tus cargas y tus ajustes de Mi turno. No se puede "
+                                          "deshacer. ¿Seguro?", reply_markup=kb)
+            except Exception as e:
+                log.debug("No se pudo editar: %s", e)
+        elif accion == "borrar_si":
+            almacen.borrar_turno(uid)
+            context.user_data["turno_off"] = 0
+            try:
+                await q.edit_message_text("Listo, borré tus datos de Mi turno.")
+            except Exception as e:
+                log.debug("No se pudo editar: %s", e)
+    except Exception as e:
+        log.warning("Falló Mi turno: %s", e)
+        try:
+            await q.message.reply_text("Ahora no pude acceder a tus datos de Mi turno. Probá de nuevo en un ratito.")
+        except Exception:
+            pass
+
+
+@requiere_acceso
+async def comando_turno(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["modo"] = "turno"
+    context.user_data["turno_off"] = 0
+    context.user_data.pop("tema", None)
+    context.user_data.pop("sim", None)
+    try:
+        await _mostrar_panel(update.message, update.message.chat.id)
+    except Exception as e:
+        log.warning("Falló Mi turno: %s", e)
+        await update.message.reply_text("Ahora no pude acceder a tus datos de Mi turno. Probá de nuevo en un ratito.")
+
+
+@requiere_acceso
+async def silenciar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        almacen.ajustes_set(update.message.chat.id, silenciado=True)
+        await update.message.reply_text("Listo, pausé el recordatorio de Mi turno. Para reactivarlo, mandá "
+                                        "/recordatorio (o /recordatorio 20 para elegir la hora).")
+    except Exception as e:
+        log.warning("Falló /silenciar: %s", e)
+        await update.message.reply_text("Ahora no pude guardar el cambio. Probá de nuevo en un ratito.")
+
+
+@requiere_acceso
+async def recordatorio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    hora = None
+    if context.args and context.args[0].isdigit() and 0 <= int(context.args[0]) <= 23:
+        hora = int(context.args[0])
+    try:
+        almacen.ajustes_set(update.message.chat.id, hora=hora, silenciado=False)
+        h, _s = almacen.ajustes_get(update.message.chat.id)
+        await update.message.reply_text("Recordatorio de Mi turno activado a las %02d:00." % h)
+    except Exception as e:
+        log.warning("Falló /recordatorio: %s", e)
+        await update.message.reply_text("Ahora no pude guardar el cambio. Probá de nuevo en un ratito.")
+
+
+async def enviar_recordatorios(context: ContextTypes.DEFAULT_TYPE):
+    """Corre cada hora: avisa a quien le toca, solo durante el turno (y el aviso de reincorporación)."""
+    hoy, hora = almacen.hoy_ar(), almacen.hora_ar()
+    try:
+        pendientes = almacen.avisos_pendientes(hoy, hora)
+    except Exception as e:
+        log.warning("No pude buscar recordatorios: %s", e)
+        return
+    for uid, _ciclo, inicio in pendientes:
+        k = hoy - inicio
+        try:
+            if 0 <= k < turno.DIAS_TURNO:
+                texto, kb = _panel(uid)
+                texto = "Cierre del día. ¿Qué hiciste hoy?\n\n" + texto
+            elif k == turno.DIAS_TURNO + turno.DIAS_DESCANSO - 1:
+                texto, kb = "Mañana termina tu descanso. Cuando empieces tu turno, tocá el botón.", _kb_inicio()
+            elif k == turno.DIAS_TURNO + turno.DIAS_DESCANSO:
+                texto, kb = "¿Hoy volvés al turno? Cuando empieces, tocá el botón.", _kb_inicio()
+            else:
+                continue
+            await context.bot.send_message(uid, texto, reply_markup=kb)
+            almacen.aviso_marcar(uid, hoy)
+        except Exception as e:  # por ejemplo, la persona bloqueó el bot
+            log.warning("No pude enviar el recordatorio a %s: %s", uid, e)
+        await asyncio.sleep(0.05)
+
+
+# ----------------------------------------------------------------------------------------------
 # Opiniones (botones 👍 / 👎)
 # ----------------------------------------------------------------------------------------------
 
@@ -1859,6 +2159,10 @@ def main():
     app.add_handler(CommandHandler("alta", alta))
     app.add_handler(CommandHandler("estadisticas", estadisticas))
     app.add_handler(CommandHandler("feedback", feedback))
+    app.add_handler(CommandHandler("turno", comando_turno))
+    app.add_handler(CommandHandler("silenciar", silenciar))
+    app.add_handler(CommandHandler("recordatorio", recordatorio))
+    app.add_handler(CallbackQueryHandler(elegir_turno, pattern=r"^turno:"))
     app.add_handler(CallbackQueryHandler(elegir_modo, pattern=r"^modo:"))
     app.add_handler(CallbackQueryHandler(elegir_tema, pattern=r"^tema:"))
     app.add_handler(CallbackQueryHandler(elegir_sim, pattern=r"^sim:"))
@@ -1866,6 +2170,11 @@ def main():
     app.add_handler(CallbackQueryHandler(opinion_motivo, pattern=r"^fbr:"))
     app.add_handler(MessageHandler(filters.Document.ALL | filters.PHOTO, manejar_archivo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_texto))
+    if app.job_queue:
+        # cada hora en punto (hora de Argentina = UTC-3, mismas horas en punto que UTC)
+        app.job_queue.run_repeating(enviar_recordatorios, interval=3600, first=3600 - (time.time() % 3600) + 20)
+    else:
+        log.warning("Sin recordatorios: falta la dependencia. En requirements.txt usá python-telegram-bot[job-queue].")
     log.info("Bot en marcha (fijos: %d, administradores: %d, guardar textos: %s)", len(ALLOWED_IDS), len(ADMIN_IDS),
              "sí" if GUARDAR_TEXTOS else "no")
     app.run_polling(drop_pending_updates=True)
