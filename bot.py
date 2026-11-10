@@ -589,8 +589,8 @@ MODOS = {
         "contexto": FUENTE_CONVERSACIONES,
         "bienvenida": (
             "Conversaciones difíciles en el trabajo. Te digo qué decir, con frases listas para usar.\n\n"
-            "Elegí la situación que más se parezca, o tocá «Escribir mi situación» y contame la tuya (con quién es, "
-            "qué hace o dice y en qué contexto; usá el cargo y no el nombre).\n\n"
+            "Elegí la conducta que más se parezca a lo que pasó, o tocá «Escribir mi situación» y contame la tuya "
+            "(con quién es, qué hace o dice y en qué contexto; usá el cargo y no el nombre).\n\n"
             "Si lo que vivís es un maltrato real o sostenido, lo que corresponde es llevarlo a RRHH."
         ),
     },
@@ -846,7 +846,7 @@ INSTRUCTIVO = (
     "2. Charla de seguridad. Mandame un Word, PDF, texto o foto con el tema y te armo una charla de 5 minutos para dar al equipo. La recibís en el chat y en un archivo Word. Si querés la charla con todo el archivo, mandalo sin comentarios. Si querés que desarrolle solo algunos puntos o temas (un procedimiento largo, por ejemplo), escribilos en el pie del archivo. Ejemplo: 'solo los puntos 4, 5 y 6', 'solo bloqueo y etiquetado'. Para eso tenés que conocer el contenido del archivo. En el pie también podés indicar a quién va dirigida. Ejemplo: ('para personal de soldadura').\n\n"
     "3. Abordaje de conducta insegura. Contame qué viste (tarea crítica, procedimiento inadecuado, qué EPP no usaba, etc.), y te armo el guion para abordarlo.\n\n"
     "4. Abordaje de conducta segura. Lo mismo, pero para reconocer y reforzar algo que alguien hizo bien.\n\n"
-    "5. Qué decir en una conversación difícil. Elegís una situación (por ejemplo, que cuestionen tu autoridad en público, o un comentario despectivo) o una conducta (grita, desautoriza, insiste, etc.), o escribís la tuya, y te digo qué decir, con frases listas para usar. Si me falta un dato importante, te lo pregunto.\n\n"
+    "5. Qué decir en una conversación difícil. Elegís la conducta que más se parezca a lo que pasó (grita, desautoriza, insiste, etc.) o escribís la tuya, y te digo qué decir, con frases listas para usar. Si me falta un dato importante, te lo pregunto.\n\n"
     "6. Mi turno. Llevás tus 6 KPI del turno (documentación, riesgos críticos, stop works, abordajes e inspecciones): un mínimo de 5 de cada uno por ciclo de 14 días, salvo stop works, que se cuentan sin meta (uno o más). Cada día cargás lo que hiciste en obra y te recuerdo los que van atrasados. Competís contra tu propio ciclo anterior. Con /silenciar pausás el recordatorio.\n\n"
     "Cómo sacarle el jugo: sé concreto. Cuanto más detalle me des (tarea, lugar, qué pasó, cómo reaccionó la persona), mejor sale la respuesta. No mandes datos personales sensibles ni documentos confidenciales de tu empresa.\n\n"
     "Importante: si lo que ves es un riesgo grave o inminente, primero frená la tarea (stop work) y comunicá al supervisor; el guion o la charla vienen después. Soy una ayuda: no reemplazo tu criterio profesional, la evaluación de riesgos de tu lugar ni la normativa vigente ni los procedimientos de tu empresa.\n\n"
@@ -1396,20 +1396,7 @@ CONDUCTAS = {
     },
 }
 
-# Botones del primer nivel: situaciones frecuentes (cada una apunta a una conducta y a una sección de la fuente).
-SIM_SITUACIONES = {
-    "autoridad": {"boton": "Cuestionan mi autoridad en público", "conducta": "desautoriza",
-                  "ejemplo": "En la reunión, el gerente dijo delante de todos que mi decisión de parar la tarea "
-                             "estaba mal."},
-    "decision": {"boton": "Sostener una decisión sin explicar de más", "conducta": "insiste",
-                 "ejemplo": "Un compañero me pide una y otra vez que cambie el procedimiento y yo ya lo decidí."},
-    "humor": {"boton": "Descalificaciones disfrazadas de humor", "conducta": "desvaloriza",
-              "ejemplo": "En el almuerzo, un compañero dijo que yo estoy para vigilar a los demás y después dijo "
-                         "que era un chiste."},
-    "despectivo": {"boton": "Comentario despectivo", "conducta": "desvaloriza",
-                   "ejemplo": "En la reunión, el supervisor dijo que mi informe lo hace cualquiera."},
-}
-# Botones del segundo nivel («Por conducta»).
+# Botones de la pantalla de «Qué decir en una conversación difícil»: las 9 conductas y «Escribir mi situación».
 SIM_BOTONES_CONDUCTA = [
     ("grita", "Grita o interrumpe con hostilidad"), ("discute", "Discute acalorado"),
     ("critica", "Critica sin concretar"), ("desautoriza", "Desautoriza"),
@@ -1420,15 +1407,8 @@ SIM_BOTONES_CONDUCTA = [
 
 
 def teclado_sim_menu():
-    filas = [[InlineKeyboardButton(v["boton"], callback_data="sim:s:" + k)] for k, v in SIM_SITUACIONES.items()]
-    filas.append([InlineKeyboardButton("Por conducta", callback_data="sim:cm")])
-    filas.append([InlineKeyboardButton("Escribir mi situación", callback_data="sim:libre")])
-    return InlineKeyboardMarkup(filas)
-
-
-def teclado_sim_conductas():
     filas = [[InlineKeyboardButton(t, callback_data="sim:c:" + k)] for k, t in SIM_BOTONES_CONDUCTA]
-    filas.append([InlineKeyboardButton("Volver", callback_data="sim:menu")])
+    filas.append([InlineKeyboardButton("Escribir mi situación", callback_data="sim:libre")])
     return InlineKeyboardMarkup(filas)
 
 
@@ -1655,20 +1635,9 @@ async def elegir_sim(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if accion == "corregir":
         await q.message.reply_text("Dale. Escribime de nuevo la situación con lo que quieras corregir (con quién es "
                                    "y qué hace o dice).")
-    elif accion == "menu":
-        await q.message.reply_text("Elegí la situación que más se parezca, o escribí la tuya.",
-                                   reply_markup=teclado_sim_menu())
-    elif accion == "cm":
-        await q.message.reply_text("Elegí la conducta que más se parezca a lo que pasó.",
-                                   reply_markup=teclado_sim_conductas())
     elif accion == "libre":
         await q.message.reply_text("Dale. Escribime la situación: con quién es (cargo, no nombre), qué hace o dice y "
                                    "en qué contexto.")
-    elif accion == "s" and dato in SIM_SITUACIONES:
-        sit = SIM_SITUACIONES[dato]
-        context.user_data["sim"] = {"fase": "contexto", "preset": {"conducta": sit["conducta"], "label": sit["boton"]}}
-        await q.message.reply_text("Contame en una línea qué pasó: con quién es, qué dijo o hizo y en qué contexto. "
-                                   "Por ejemplo: «" + sit["ejemplo"] + "»")
     elif accion == "c" and dato in CONDUCTAS:
         nombre = dict(SIM_BOTONES_CONDUCTA)[dato]
         context.user_data["sim"] = {"fase": "contexto", "preset": {"conducta": dato, "label": nombre}}
